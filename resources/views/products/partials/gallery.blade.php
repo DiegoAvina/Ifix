@@ -40,12 +40,12 @@
     @keydown.arrow-right.window="if(lightbox) next()"
     @keydown.arrow-left.window="if(lightbox) prev()"
 
-    class="space-y-6"
+    class="space-y-3 sm:space-y-4"
 >
 
     {{-- Imagen principal --}}
     <div
-        class="group relative overflow-hidden rounded-[2rem] border border-outline-variant/30 bg-gradient-to-b from-surface-container-low to-white shadow-sm"
+        class="group relative overflow-hidden rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm sm:p-3"
     >
 
         {{-- Badges --}}
@@ -60,18 +60,18 @@
 
                             'danger' => 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200',
 
-                            'warning' => 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200',
+                            'warning' => 'bg-amber-100 text-amber-950 ring-1 ring-inset ring-amber-200',
 
                             'success' => 'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200',
 
                             'info' => 'bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200',
 
-                            default => 'bg-white text-on-surface ring-1 ring-inset ring-outline-variant',
+                            default => 'bg-neutral-950 text-white ring-1 ring-inset ring-neutral-950',
 
                         };
                     @endphp
 
-                    <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide shadow-sm {{ $classes }}">
+                    <span class="rounded-full px-3 py-1 text-[10px] font-extrabold uppercase tracking-wide shadow-sm {{ $classes }}">
 
                         {{ $badge->label }}
 
@@ -85,7 +85,7 @@
 
         <div
 
-            class="relative aspect-square overflow-hidden cursor-zoom-in bg-white"
+            class="relative aspect-square overflow-hidden rounded-xl bg-[#f5f5f3] cursor-zoom-in"
 
             @mouseenter="zoom=true"
 
@@ -103,7 +103,7 @@
 
                 :alt="current.alt"
 
-                class="h-full w-full object-contain p-10 transition duration-300 ease-out"
+                class="h-full w-full object-contain p-7 transition duration-300 ease-out sm:p-10"
 
                 :style="zoom
                     ? `transform:scale(2);
@@ -120,7 +120,7 @@
 
     {{-- Miniaturas --}}
 
-    <div class="grid grid-cols-4 gap-4 sm:grid-cols-5 lg:grid-cols-6">
+    <div class="grid grid-cols-4 gap-2 sm:grid-cols-5 sm:gap-3 lg:grid-cols-6">
 
         <template
 
@@ -134,11 +134,11 @@
 
                 @click="index=i"
 
-                class="overflow-hidden rounded-2xl border bg-white transition"
+                class="overflow-hidden rounded-xl border bg-white transition"
 
                 :class="index===i
-                    ? 'ring-2 ring-primary border-primary shadow-lg scale-105'
-                    : 'border-outline-variant/50 hover:border-primary/40 hover:shadow'"
+                    ? 'ring-2 ring-[#f5a623] border-[#f5a623] shadow-md'
+                    : 'border-neutral-200 hover:border-neutral-400 hover:shadow-sm'"
 
             >
 

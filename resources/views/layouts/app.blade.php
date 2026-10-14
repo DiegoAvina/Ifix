@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="light" lang="es">
+<html lang="es">
 
 <head>
 
@@ -20,6 +20,7 @@
         @yield('title', 'Ifix | Innovando tu Mundo')
     </title>
 
+    @include('partials.theme-script')
 
     {{-- Fonts --}}
 
@@ -32,6 +33,11 @@
 
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet"
     >
 
@@ -51,11 +57,6 @@
                 'wght' 300,
                 'GRAD' 0,
                 'opsz' 24;
-        }
-
-        body {
-            background-color: #fcf9f8;
-            color: #1c1b1b;
         }
 
         .carousel-item {
@@ -89,7 +90,7 @@
 </head>
 
 
-<body class="font-body-md antialiased overflow-x-hidden">
+<body class="font-sans antialiased overflow-x-hidden">
 
 
     {{-- ========================================================= --}}

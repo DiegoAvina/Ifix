@@ -135,6 +135,33 @@ window.cartWidget = function () {
 
         shipping: '$0.00',
 
+        freeShipping: false,
+
+        subtotalAmount: 0,
+
+        amountUntilFreeShipping: 0,
+
+        freeShippingFrom: 0,
+
+        estimatedShipping: 0,
+
+        get freeShippingProgress() {
+            if (this.freeShippingFrom <= 0) {
+                return 100;
+            }
+
+            return Math.min(
+                100,
+                (this.subtotalAmount / this.freeShippingFrom) * 100
+            );
+        },
+
+        get estimatedShippingLabel() {
+            return this.freeShipping
+                ? 'Gratis'
+                : `$${this.estimatedShipping.toFixed(2)} MXN`;
+        },
+
         total: '$0.00',
 
         open: false,
@@ -142,21 +169,33 @@ window.cartWidget = function () {
         loading: false,
 
 
-        init(dataUrl) {
+        init(dataUrl, freeShippingFrom, estimatedShipping, initialCart = null) {
 
             this.dataUrl = dataUrl;
+            this.freeShippingFrom = freeShippingFrom;
+            this.estimatedShipping = estimatedShipping;
 
             console.log(
                 'CART INIT:',
                 this.dataUrl
             );
 
-            this.refresh();
+            const cart = initialCart || window.ifixCartState;
+
+            if (cart) {
+                this.applyCart(cart);
+            } else {
+                this.refresh();
+            }
 
             window.addEventListener(
                 'cart-updated',
-                () => {
-                    this.refresh();
+                (event) => {
+                    if (event.detail) {
+                        this.applyCart(event.detail);
+                    } else {
+                        this.refresh();
+                    }
                 }
             );
         },
@@ -265,6 +304,8 @@ window.cartWidget = function () {
 
         applyCart(cart) {
 
+            window.ifixCartState = cart;
+
             this.quantity =
                 Number(
                     cart?.quantity ?? 0
@@ -287,6 +328,21 @@ window.cartWidget = function () {
 
             this.shipping =
                 cart?.shipping ?? '$0.00';
+
+            this.freeShipping =
+                Boolean(cart?.freeShipping);
+
+            this.subtotalAmount =
+                Number(cart?.subtotalAmount ?? 0);
+
+            this.amountUntilFreeShipping =
+                Number(cart?.amountUntilFreeShipping ?? 0);
+
+            this.freeShippingFrom =
+                Number(cart?.freeShippingFrom ?? this.freeShippingFrom);
+
+            this.estimatedShipping =
+                Number(cart?.estimatedShipping ?? this.estimatedShipping);
 
 
             this.total =

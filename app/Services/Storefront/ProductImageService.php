@@ -14,7 +14,7 @@ class ProductImageService
         $media = $product->getFirstMedia('images');
 
         if (! $media) {
-            return null;
+            return $this->placeholder($product);
         }
 
         return new ImageData(
@@ -37,7 +37,7 @@ class ProductImageService
      */
     public function gallery($product): array
     {
-        return $product
+        $images = $product
             ->getMedia('images')
             ->map(function ($media) {
 
@@ -55,5 +55,19 @@ class ProductImageService
 
             })
             ->toArray();
+
+        return $images ?: [$this->placeholder($product)];
+    }
+
+    private function placeholder($product): ImageData
+    {
+        $name = $product->translateAttribute('name') ?: 'Producto IFIX';
+
+        return new ImageData(
+            url: asset('images/demo-detailing-product.svg'),
+            name: $name,
+            alt: $name,
+            primary: true,
+        );
     }
 }

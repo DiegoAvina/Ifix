@@ -14,5 +14,10 @@ final readonly class CartData
         public string $tax,
         public string $shipping,
         public string $total,
+        public bool $freeShipping,
+        public float $subtotalAmount,
+        public float $amountUntilFreeShipping,
+        public int $freeShippingFrom,
+        public int $estimatedShipping,
     ) {}
 }

@@ -542,7 +542,7 @@ if (!data.success) {
 
 }'
 
-    class="sticky top-28 rounded-[2rem] border border-outline-variant/30 bg-white p-8 shadow-sm">
+    class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-7 lg:sticky lg:top-28">
 
 
     {{-- ================================================================ --}}
@@ -550,8 +550,8 @@ if (!data.success) {
     {{-- ================================================================ --}}
 
     <p
-        class="font-label-md text-label-md text-primary">
-        {{ $product->brand->name }}
+        class="inline-flex rounded-full bg-amber-100 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-amber-900">
+        {{ $product->brand->name ?? 'IFIX' }}
     </p>
 
 
@@ -560,7 +560,7 @@ if (!data.success) {
     {{-- ================================================================ --}}
 
     <h1
-        class="mt-3 text-4xl font-extrabold leading-tight text-on-surface lg:text-5xl">
+        class="mt-3 font-heading text-2xl font-extrabold leading-tight tracking-tight text-neutral-950 sm:text-3xl lg:text-4xl">
         {{ $product->name }}
     </h1>
 
@@ -572,7 +572,7 @@ if (!data.success) {
     @if($product->inventory->sku)
 
     <div
-        class="mt-4 flex items-center gap-2 text-sm text-secondary">
+        class="mt-3 flex items-center gap-2 text-xs text-neutral-500">
 
         <span class="font-medium">
             SKU:
@@ -591,7 +591,7 @@ if (!data.success) {
     {{-- SEPARADOR --}}
     {{-- ================================================================ --}}
 
-    <div class="my-8 border-t border-outline-variant/30"></div>
+    <div class="my-6 border-t border-neutral-100"></div>
 
 
     {{-- ================================================================ --}}
@@ -601,12 +601,12 @@ if (!data.success) {
     <div>
 
         <p
-            class="text-5xl font-black tracking-tight text-on-surface tabular-nums">
+            class="font-heading text-3xl font-extrabold tracking-tight text-neutral-950 tabular-nums sm:text-4xl">
             {{ $product->price->formatted }}
         </p>
 
         <p
-            class="mt-2 text-sm text-secondary">
+            class="mt-1.5 text-xs text-neutral-500">
             Precio con IVA incluido.
         </p>
 
@@ -617,7 +617,7 @@ if (!data.success) {
     {{-- DISPONIBILIDAD --}}
     {{-- ================================================================ --}}
 
-    <div class="mt-8">
+    <div class="mt-6 rounded-xl bg-[#f5f5f3] p-4">
 
         @if($available && $stock > 0)
 
@@ -629,13 +629,13 @@ if (!data.success) {
             </span>
 
             <span
-                class="font-semibold text-emerald-700">
+                class="text-sm font-bold text-emerald-700">
                 Disponible
             </span>
 
         </div>
 
-        <p class="mt-2 text-sm text-secondary">
+        <p class="mt-1.5 text-xs text-neutral-600">
 
             {{ $stock }}
 
@@ -653,13 +653,13 @@ if (!data.success) {
                 class="h-3 w-3 rounded-full bg-amber-500"></span>
 
             <span
-                class="font-semibold text-amber-700">
+                class="text-sm font-bold text-amber-800">
                 Disponible bajo pedido
             </span>
 
         </div>
 
-        <p class="mt-2 text-sm text-secondary">
+        <p class="mt-1.5 text-xs text-neutral-600">
             El tiempo de entrega puede variar según disponibilidad del proveedor.
         </p>
 
@@ -671,13 +671,13 @@ if (!data.success) {
                 class="h-3 w-3 rounded-full bg-red-500"></span>
 
             <span
-                class="font-semibold text-red-700">
+                class="text-sm font-bold text-red-700">
                 Agotado
             </span>
 
         </div>
 
-        <p class="mt-2 text-sm text-secondary">
+        <p class="mt-1.5 text-xs text-neutral-600">
             Actualmente no tenemos unidades disponibles.
         </p>
 
@@ -690,7 +690,7 @@ if (!data.success) {
     {{-- SEPARADOR --}}
     {{-- ================================================================ --}}
 
-    <div class="my-8 border-t border-outline-variant/30"></div>
+    <div class="my-6 border-t border-neutral-100"></div>
 
 
     {{-- ================================================================ --}}
@@ -700,19 +700,19 @@ if (!data.success) {
     <div>
 
         <label
-            class="mb-4 block text-sm font-semibold text-on-surface">
+            class="mb-2.5 block text-xs font-bold text-neutral-800">
             Cantidad
         </label>
 
 
         <div
-            class="flex w-44 items-center overflow-hidden rounded-2xl border border-outline-variant">
+            class="flex w-40 items-center overflow-hidden rounded-xl border border-neutral-200 bg-white">
 
             <button
                 type="button"
                 @click="decrease()"
                 :disabled="loading || qty <= quantityRules.floor(minQuantity, quantityIncrement)"
-                class="flex h-12 w-12 items-center justify-center text-xl font-semibold text-on-surface transition hover:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-40"
+                class="flex h-11 w-11 items-center justify-center text-xl font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Disminuir cantidad">
                 −
             </button>
@@ -729,7 +729,7 @@ if (!data.success) {
         loading ||
         {{ $canPurchase ? 'false' : 'true' }}
     "
-                class="w-full border-0 text-center font-semibold text-on-surface focus:ring-0"
+                class="w-full border-0 bg-transparent text-center text-sm font-semibold text-neutral-900 focus:ring-0"
                 aria-label="Cantidad">
 
 
@@ -737,7 +737,7 @@ if (!data.success) {
                 type="button"
                 @click="increase()"
                 :disabled="loading || qty >= maxStock"
-                class="flex h-12 w-12 items-center justify-center text-xl font-semibold text-on-surface transition hover:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-40"
+                class="flex h-11 w-11 items-center justify-center text-xl font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Aumentar cantidad">
                 +
             </button>
@@ -771,7 +771,7 @@ if (!data.success) {
     {{-- BOTONES --}}
     {{-- ================================================================ --}}
 
-    <div class="mt-10 space-y-4">
+    <div class="mt-6 space-y-3">
 
 
         {{-- AGREGAR AL CARRITO --}}
@@ -783,7 +783,7 @@ if (!data.success) {
         loading ||
         {{ $canPurchase ? 'false' : 'true' }}
     "
-            class="flex w-full items-center justify-center gap-3 rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-on-primary shadow-lg shadow-primary/20 transition hover:brightness-110 hover:shadow-primary/30 disabled:cursor-not-allowed disabled:bg-surface-container disabled:text-secondary disabled:shadow-none">
+            class="flex w-full items-center justify-center gap-2 rounded-full bg-[#f5a623] px-6 py-3.5 text-sm font-extrabold text-neutral-950 shadow-sm transition hover:bg-amber-400 active:scale-[.99] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:shadow-none">
             <template x-if="loading">
                 <svg
                     class="h-5 w-5 animate-spin"
@@ -836,7 +836,7 @@ if (!data.success) {
         loading ||
         {{ $canPurchase ? 'false' : 'true' }}
     "
-            class="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-primary px-6 py-4 text-lg font-semibold text-primary transition hover:bg-surface-container-low disabled:cursor-not-allowed disabled:border-outline-variant disabled:text-secondary">
+            class="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 px-6 py-3 text-sm font-bold text-neutral-900 transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400">
             <span class="material-symbols-outlined">
                 bolt
             </span>
@@ -866,10 +866,10 @@ if (!data.success) {
     {{-- ================================================================ --}}
 
     <div
-        class="mt-10 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-6">
+        class="mt-6 rounded-2xl bg-neutral-950 p-5 text-white sm:p-6">
 
         <h3
-            class="mb-5 font-semibold text-on-surface">
+            class="mb-4 font-heading text-sm font-extrabold text-white">
             ¿Por qué comprar con nosotros?
         </h3>
 
@@ -885,17 +885,17 @@ if (!data.success) {
 
             <div class="flex items-start gap-3">
 
-                <span class="material-symbols-outlined text-lg text-primary">
+                <span class="material-symbols-outlined text-lg text-[#f5a623]">
                     check_circle
                 </span>
 
                 <div>
 
-                    <p class="font-medium text-on-surface">
+                    <p class="text-xs font-bold text-white">
                         {{ $reason['title'] }}
                     </p>
 
-                    <p class="text-sm text-secondary">
+                    <p class="mt-0.5 text-[11px] leading-5 text-neutral-300">
                         {{ $reason['text'] }}
                     </p>
 

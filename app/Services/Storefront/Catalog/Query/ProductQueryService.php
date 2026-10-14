@@ -2,6 +2,7 @@
 
 namespace App\Services\Storefront\Catalog\Query;
 
+use App\Services\Storefront\StorefrontAvailabilityQuery;
 use Illuminate\Database\Eloquent\Builder;
 use Lunar\Models\Product;
 
@@ -15,6 +16,7 @@ class ProductQueryService
         protected PriceQuery $price,
         protected SearchQuery $search,
         protected SortQuery $sort,
+        protected StorefrontAvailabilityQuery $storefrontAvailability,
 
     ) {}
 
@@ -24,9 +26,12 @@ class ProductQueryService
             ->with([
                 'brand',
                 'variants.prices',
+                'variants.values.option',
                 'media',
+                'defaultUrl',
             ])
             ->where('status', 'published');
+        $query = $this->storefrontAvailability->apply($query);
 
         $query = $this->brand->apply($query);
         $query = $this->collection->apply($query);

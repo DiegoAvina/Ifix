@@ -36,7 +36,7 @@ class StandardShippingModifier extends ShippingModifier
         $decimalPlaces = $cart->currency?->decimal_places ?? 2;
 
         $subTotalMinorUnits = (int) $cart->lines->sum(
-            fn ($line) => $line->total?->value ?? 0
+            fn ($line) => $line->subTotal?->value ?? 0
         );
 
         $estimate = app(ShippingViewService::class)->estimateFor(

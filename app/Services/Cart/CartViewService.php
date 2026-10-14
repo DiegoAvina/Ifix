@@ -7,11 +7,16 @@ use App\Data\Cart\CartItemData;
 use App\Support\LunarAttribute;
 use App\Support\Money;
 use App\Support\VariantQuantityRules;
+use App\Services\Shipping\ShippingViewService;
 use Lunar\DataTypes\Price;
 use Lunar\Facades\CartSession;
 
 class CartViewService
 {
+    public function __construct(
+        protected ShippingViewService $shippingView,
+    ) {}
+
     /**
      * Obtener el carrito actual.
      */
@@ -27,11 +32,16 @@ class CartViewService
                 tax: $this->money(null),
                 shipping: $this->money(null),
                 total: $this->money(null),
+                freeShipping: false,
+                subtotalAmount: 0,
+                amountUntilFreeShipping: (float) config('shipping.free_shipping_from'),
+                freeShippingFrom: (int) config('shipping.free_shipping_from'),
+                estimatedShipping: (int) config('shipping.standard_cost'),
             );
         }
 
         $cart->load([
-            'lines.purchasable.product',
+            'lines.purchasable.product.media',
             'lines.purchasable.prices',
         ]);
 
@@ -44,6 +54,12 @@ class CartViewService
             ->map(fn ($line) => $this->mapLine($line))
             ->values()
             ->toArray();
+
+        $subtotalAmount = $cart->subTotal?->decimal() ?? 0.0;
+        $shippingEstimate = $this->shippingView->estimateFor(
+            cartTotal: $subtotalAmount,
+            itemCount: (int) $cart->lines->sum('quantity'),
+        );
 
         return new CartData(
             quantity: (int) $cart->lines->sum('quantity'),
@@ -65,6 +81,19 @@ class CartViewService
             total: $this->money(
                 $cart->total
             ),
+
+            freeShipping: $shippingEstimate->freeShipping,
+
+            subtotalAmount: $subtotalAmount,
+
+            amountUntilFreeShipping: max(
+                0,
+                (float) config('shipping.free_shipping_from') - $subtotalAmount,
+            ),
+
+            freeShippingFrom: (int) config('shipping.free_shipping_from'),
+
+            estimatedShipping: $shippingEstimate->shippingCost,
         );
     }
 

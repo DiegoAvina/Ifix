@@ -3,14 +3,16 @@
 namespace App\Services\Storefront;
 
 use App\Data\PriceData;
+use Lunar\Models\Currency;
 
 class ProductPriceService
 {
     public function build($variant): PriceData
     {
+        $currency = Currency::query()->where('default', true)->first();
         $price = optional(
             $variant?->prices
-                ->where('currency_id', 1)
+                ->where('currency_id', $currency?->id)
                 ->first()
         );
 
@@ -19,7 +21,7 @@ class ProductPriceService
         return new PriceData(
             raw: $amount / 100,
             formatted: '$' . number_format($amount / 100, 2),
-            currency: 'MXN',
+            currency: $currency?->code ?? 'MXN',
         );
     }
 }

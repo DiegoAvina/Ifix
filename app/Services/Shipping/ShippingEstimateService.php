@@ -37,7 +37,7 @@ class ShippingEstimateService
 
             freeShipping: $freeShipping,
 
-            shippingCost: $freeShipping ? 0 : 149,
+            shippingCost: $freeShipping ? 0 : (int) config('shipping.standard_cost'),
 
             message: $freeShipping
                 ? 'Envío gratuito'

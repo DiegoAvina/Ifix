@@ -4,19 +4,19 @@
 
 @section('content')
 
-<div class="min-h-screen bg-surface-container-low">
+<div class="order-confirmation min-h-screen bg-surface-container-low">
 
     <div class="mx-auto max-w-4xl px-6 py-14">
 
         @if (session('error'))
-            <div class="mb-8 rounded-2xl border border-error/20 bg-error-container px-5 py-4 text-sm font-medium text-on-error-container">
+            <div class="order-confirmation-error mb-8 rounded-2xl border border-error/20 bg-error-container px-5 py-4 text-sm font-medium text-on-error-container">
                 {{ session('error') }}
             </div>
         @endif
 
         <div class="text-center">
 
-            <span class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
+            <span class="order-confirmation-icon mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
                 <span class="material-symbols-outlined text-3xl text-emerald-600">check_circle</span>
             </span>
 
@@ -27,7 +27,11 @@
                 — {{ $order->createdAt->translatedFormat('d \d\e F, Y') }}
             </p>
 
-            <span class="mt-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold {{ $order->isPlaced ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700' }}">
+            <span @class([
+                'order-confirmation-status mt-4 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold',
+                'order-confirmation-status-success bg-emerald-50 text-emerald-700' => $order->isPlaced,
+                'order-confirmation-status-pending bg-amber-50 text-amber-700' => !$order->isPlaced,
+            ])>
                 <span class="h-2 w-2 rounded-full {{ $order->isPlaced ? 'bg-emerald-500' : 'bg-amber-500' }}"></span>
                 {{ $order->statusLabel }}
             </span>
@@ -48,7 +52,7 @@
                     @csrf
                     <button
                         type="submit"
-                        class="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 font-semibold text-on-primary transition hover:brightness-110">
+                        class="inline-flex items-center gap-2 rounded-xl bg-[#f5a623] px-8 py-3.5 font-semibold text-neutral-950 transition hover:bg-amber-400">
                         <span class="material-symbols-outlined text-lg">payments</span>
                         Pagar con Mercado Pago
                     </button>
@@ -61,7 +65,7 @@
 
         <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2">
 
-            <div class="rounded-2xl border border-outline-variant/30 bg-white p-6">
+            <div class="order-confirmation-card rounded-2xl border border-outline-variant/30 bg-white p-6">
                 <h2 class="font-semibold text-on-surface">Dirección de envío</h2>
 
                 @if ($order->shippingAddress)
@@ -77,7 +81,7 @@
                 @endif
             </div>
 
-            <div class="rounded-2xl border border-outline-variant/30 bg-white p-6">
+            <div class="order-confirmation-card rounded-2xl border border-outline-variant/30 bg-white p-6">
                 <h2 class="font-semibold text-on-surface">Dirección de facturación</h2>
 
                 @if ($order->billingAddress)
@@ -96,7 +100,7 @@
         </div>
 
 
-        <div class="mt-6 rounded-2xl border border-outline-variant/30 bg-white p-6">
+        <div class="order-confirmation-card mt-6 rounded-2xl border border-outline-variant/30 bg-white p-6">
 
             <h2 class="font-semibold text-on-surface">Productos</h2>
 
@@ -157,7 +161,7 @@
             </a>
 
             <a href="{{ route('home') }}"
-                class="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-on-primary hover:brightness-110">
+                class="rounded-xl bg-[#f5a623] px-6 py-3 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400">
                 Seguir comprando
             </a>
 

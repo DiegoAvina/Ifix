@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="min-h-screen bg-surface-container-low">
+<div class="checkout-page min-h-screen bg-surface-container-low">
 
     <div class="mx-auto max-w-7xl px-6 py-10">
 
@@ -208,7 +208,7 @@
                             <select name="country_id" required
                                 class="w-full rounded-xl border border-outline-variant px-4 py-3 text-sm focus:border-primary focus:ring-primary">
                                 @foreach ($countries as $country)
-                                    <option value="{{ $country->id }}" @selected(old('country_id', 143) == $country->id)>
+                                    <option value="{{ $country->id }}" @selected(old('country_id', $defaultCountryId) == $country->id)>
                                         {{ $country->name }}
                                     </option>
                                 @endforeach

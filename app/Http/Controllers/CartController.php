@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Cart\CartService;
 use App\Services\Cart\CartViewService;
+use App\Services\Storefront\StorefrontAvailabilityQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class CartController extends Controller
     public function __construct(
         protected CartService $cartService,
         protected CartViewService $cartViewService,
+        protected StorefrontAvailabilityQuery $storefrontAvailability,
     ) {}
 
     /**
@@ -74,6 +76,8 @@ class CartController extends Controller
         return $this->handleCartAction(function () use ($validated) {
 
             $variant = ProductVariant::query()
+                ->whereHas('product', fn ($query) => $this->storefrontAvailability
+                    ->apply($query->where('status', 'published'), true))
                 ->findOrFail(
                     $validated['variant_id']
                 );

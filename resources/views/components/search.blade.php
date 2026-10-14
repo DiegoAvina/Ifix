@@ -13,36 +13,23 @@
 <form
     method="GET"
     action="{{ route('catalog.index') }}"
-    class="hidden sm:flex items-center border-b border-outline-variant px-2 py-1 focus-within:border-primary transition-colors {{ $class }}"
+    class="flex min-w-0 items-center gap-2 transition-colors {{ $class }}"
 >
-
-    <span
-        class="material-symbols-outlined text-outline text-sm"
-        data-icon="search"
-    >
-        search
-    </span>
-
     <input
         type="search"
         name="search"
         value="{{ request('search') }}"
         placeholder="{{ $placeholder }}"
         autocomplete="off"
-        class="bg-transparent border-none focus:ring-0 text-sm font-light w-32 md:w-48 placeholder-secondary/50"
+        class="min-w-0 flex-1 border-none bg-transparent text-sm font-normal text-current placeholder-neutral-400 focus:ring-0"
     />
 
-</form>
-
-{{-- Mobile --}}
-<button
-    class="lg:hidden text-secondary hover:text-primary transition-colors"
-    aria-label="Abrir búsqueda"
->
-    <span
-        class="material-symbols-outlined"
-        data-icon="search"
+    <button
+        type="submit"
+        class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-slate-500 transition hover:text-[#bd7710]"
+        aria-label="Buscar productos"
     >
-        search
-    </span>
-</button>
+        <span class="material-symbols-outlined text-[19px]" aria-hidden="true">search</span>
+    </button>
+
+</form>

@@ -4,17 +4,17 @@
 
     <div class="mb-10">
 
-        <span class="font-label-md text-label-md text-primary uppercase tracking-widest mb-3 block">
+        <span class="mb-2 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#a76500]">
             También te puede interesar
         </span>
 
-        <h2 class="font-headline-md text-headline-md text-on-surface">
+        <h2 class="font-heading text-2xl font-extrabold text-neutral-950">
             Productos relacionados
         </h2>
 
     </div>
 
-    <div class="grid grid-cols-1 gap-gutter md:grid-cols-2 xl:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
 
         @foreach($product->relatedProducts as $related)
 

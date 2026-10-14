@@ -23,7 +23,7 @@ class CatalogService
             products: $this->products->all($query),
             filters: $this->filters->build(),
             sort: $this->sort->options(),
-            search: request('q'),
+            search: request('search'),
         );
     }
 }

@@ -6,9 +6,12 @@ use Lunar\Models\Collection;
 use App\Support\LunarAttribute;
 use App\Data\ProductData;
 use App\Data\BrandData;
+use App\Data\SpecificationData;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\DTOs\Storefront\ProductCollectionData;
 use Lunar\Models\Product;
+use App\Services\Storefront\StorefrontAvailabilityQuery;
 
 class ProductService
 {
@@ -17,15 +20,24 @@ class ProductService
         protected ProductPriceService $prices,
         protected ProductInventoryService $inventory,
         protected ProductBadgeService $badges,
+        protected StorefrontAvailabilityQuery $storefrontAvailability,
     ) {}
 
     public function featured(): array
     {
-        $collection = Collection::with([
-            'products.brand',
-            'products.variants.prices',
-            'products.media',
-        ])->find(config('storefront.featured_collection_id'));
+        $query = $this->storefrontAvailability->apply(Collection::query())
+            ->whereKey(config('storefront.featured_collection_id'))
+            ->with([
+                'products' => fn (BelongsToMany $products) => $this->storefrontAvailability->apply(
+                    $products->getQuery()->where('status', 'published')
+                ),
+                'products.brand',
+                'products.variants.prices',
+                'products.variants.values.option',
+                'products.media',
+                'products.defaultUrl',
+            ]);
+        $collection = $query->first();
 
         if (! $collection) {
             return [];
@@ -49,7 +61,7 @@ class ProductService
                 'name'
             ),
 
-            slug: $product->id,
+            slug: $product->defaultUrl?->slug ?? (string) $product->id,
 
             brand: new BrandData(
                 id: $product->brand?->id,
@@ -77,13 +89,21 @@ class ProductService
                 'description'
             ),
 
-            specifications: [],
+            specifications: $variant?->values
+                ->map(fn ($value) => new SpecificationData(
+                    label: $value->option?->translate('name') ?? '',
+                    value: $value->translate('name') ?? '',
+                ))
+                ->filter(fn (SpecificationData $specification) => $specification->label !== ''
+                    && $specification->value !== '')
+                ->values()
+                ->all() ?? [],
 
             relatedProducts: $relatedProducts,
 
             url: route(
                 'catalog.show',
-                $product->id
+                $product->defaultUrl?->slug ?? $product->id
             ),
 
             // Lo dejamos como estaba
@@ -113,13 +133,18 @@ class ProductService
 
     public function find(int $id): ProductData
     {
-        $product = Product::query()
+        $productQuery = Product::query()
             ->with([
                 'brand',
                 'variants.prices',
+                'variants.values.option',
                 'media',
                 'collections',
+                'defaultUrl',
             ])
+            ->where('status', 'published');
+        $product = $this->storefrontAvailability
+            ->apply($productQuery)
             ->findOrFail($id);
 
         return $this->map(
@@ -139,14 +164,16 @@ class ProductService
      */
     public function related(Product $product, int $limit = 4): array
     {
-        $base = fn () => Product::query()
+        $base = fn () => $this->storefrontAvailability->apply(Product::query()
             ->with([
                 'brand',
                 'variants.prices',
+                'variants.values.option',
                 'media',
+                'defaultUrl',
             ])
             ->where('status', 'published')
-            ->where('id', '!=', $product->id);
+            ->where('id', '!=', $product->id));
 
         $byBrand = $product->brand_id
             ? $base()->where('brand_id', $product->brand_id)

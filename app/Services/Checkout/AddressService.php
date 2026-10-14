@@ -4,6 +4,7 @@ namespace App\Services\Checkout;
 
 use App\Data\AddressData;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
 use Lunar\Models\Address;
 use Lunar\Models\Customer;
@@ -16,9 +17,31 @@ class AddressService
      * Nunca crea un Customer nuevo aquí: el registro (RegisteredUserController)
      * ya se encarga de crear exactamente uno por usuario.
      */
-    public function resolveCustomer(User $user): ?Customer
+    public function resolveCustomer(User $user): Customer
     {
-        return $user->latestCustomer();
+        return DB::transaction(function () use ($user): Customer {
+            $user = User::query()
+                ->whereKey($user->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $customer = $user->latestCustomer();
+
+            if ($customer) {
+                return $customer;
+            }
+
+            $nameParts = preg_split('/\s+/', trim($user->name), 2);
+
+            $customer = Customer::create([
+                'first_name' => $nameParts[0] ?: $user->name,
+                'last_name' => $nameParts[1] ?? '',
+            ]);
+
+            $customer->users()->syncWithoutDetaching([$user->id]);
+
+            return $customer;
+        });
     }
 
     /**

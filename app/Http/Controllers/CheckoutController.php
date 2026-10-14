@@ -58,7 +58,11 @@ class CheckoutController extends Controller
 
             'addresses' => $this->addressService->forCustomer($customer),
 
-            'countries' => Country::orderBy('name')->get(['id', 'name']),
+            'countries' => Country::orderBy('name')->get(['id', 'name', 'iso2']),
+
+            'defaultCountryId' => Country::query()
+                ->where('iso2', 'MX')
+                ->value('id'),
 
             'shippingEstimate' => $shippingEstimate,
 
@@ -176,15 +180,7 @@ class CheckoutController extends Controller
      */
     protected function resolveCustomer(): Customer
     {
-        $customer = $this->addressService->resolveCustomer(Auth::user());
-
-        abort_if(
-            ! $customer,
-            500,
-            'Tu cuenta no tiene un cliente asociado. Contacta a soporte.'
-        );
-
-        return $customer;
+        return $this->addressService->resolveCustomer(Auth::user());
     }
 
     protected function requireCart(): \Lunar\Models\Cart

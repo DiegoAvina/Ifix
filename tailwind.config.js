@@ -89,6 +89,7 @@ export default {
 
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                heading: ['Montserrat', ...defaultTheme.fontFamily.sans],
                 'headline-sm': ['Inter'],
                 'headline-md': ['Inter'],
                 'label-sm': ['Inter'],

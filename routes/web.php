@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Lunar\Models\Product;
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CatalogController;
@@ -23,11 +24,21 @@ use App\Http\Controllers\Payment\PaymentWebhookController;
 |--------------------------------------------------------------------------
 */
 
+Route::bind('product', function (string $value): Product {
+    if (ctype_digit($value)) {
+        return Product::query()->findOrFail((int) $value);
+    }
+
+    return Product::query()
+        ->whereHas('urls', fn ($query) => $query->where('slug', $value)->where('default', true))
+        ->firstOrFail();
+});
+
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return redirect()->route('profile.edit');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 

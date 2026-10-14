@@ -22,9 +22,8 @@ class SecurityHeaders
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Nonce único por request para el único <script> inline que
-        // queda en la app (el carrusel del hero). Permite NO usar
-        // 'unsafe-inline' en script-src.
+        // Nonce único por request para los scripts inline puntuales de
+        // la app (tema y carrusel del hero), sin habilitar unsafe-inline.
         $nonce = base64_encode(Str::random(24));
 
         View::share('cspNonce', $nonce);
@@ -93,8 +92,8 @@ class SecurityHeaders
             // dominios externos.
             "frame-src 'self'",
 
-            // Scripts: propio dominio + nonce para el único <script>
-            // inline que queda (carrusel del hero) + 'unsafe-eval',
+            // Scripts: propio dominio + nonce para los scripts inline
+            // puntuales (tema y carrusel del hero) + 'unsafe-eval',
             // requerido específicamente por Alpine.js (usa
             // `new Function()` para evaluar expresiones de x-data/x-on
             // en tiempo de ejecución; Livewire empaqueta el mismo

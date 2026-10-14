@@ -2,6 +2,7 @@
 
 namespace App\Services\Cart;
 
+use App\Services\Storefront\StorefrontAvailabilityQuery;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Lunar\Facades\CartSession;
@@ -11,6 +12,10 @@ use Lunar\Models\ProductVariant;
 
 class CartService
 {
+    public function __construct(
+        protected StorefrontAvailabilityQuery $storefrontAvailability,
+    ) {}
+
     /**
      * Obtiene el carrito actual sin crear uno nuevo.
      */
@@ -47,8 +52,20 @@ class CartService
             $meta
         ) {
 
-            $cart = $this->getOrCreate();
+            $variant = ProductVariant::query()
+                ->whereKey($variant->id)
+                ->whereHas('product', fn ($query) => $this->storefrontAvailability
+                    ->apply($query->where('status', 'published'), true))
+                ->lockForUpdate()
+                ->first();
 
+            if (! $variant) {
+                throw new InvalidArgumentException(
+                    'El producto ya no está disponible.'
+                );
+            }
+
+            $cart = $this->getOrCreate();
 
             /*
         |--------------------------------------------------------------------------
@@ -180,7 +197,7 @@ class CartService
         if (! $variant) {
 
             throw new InvalidArgumentException(
-                'La variante del producto ya no existe.'
+                'El producto ya no está disponible.'
             );
 
         }

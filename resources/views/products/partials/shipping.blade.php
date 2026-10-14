@@ -6,29 +6,29 @@ $to = now()->addDays(4);
 
 @endphp
 
-<div class="mt-8 rounded-2xl border border-outline-variant/30 bg-surface-container-low p-6">
+<div class="mt-5 rounded-2xl border border-neutral-200 bg-[#f5f5f3] p-4 sm:p-5">
 
     <div class="flex items-start gap-4">
 
         <div
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-primary"
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-[#bd7710] shadow-sm"
         >
             <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
         </div>
 
         <div>
 
-            <p class="font-semibold text-on-surface">
+            <p class="text-sm font-bold text-neutral-900">
 
                 Entrega estimada
 
             </p>
 
-            <p class="mt-1 text-secondary">
+            <p class="mt-1 text-xs leading-5 text-neutral-600">
 
                 Recíbelo entre
 
-                <span class="font-semibold text-on-surface">
+                <span class="font-semibold text-neutral-900">
 
                     {{ $from->translatedFormat('d \\d\\e F') }}
 
@@ -36,7 +36,7 @@ $to = now()->addDays(4);
 
                 y
 
-                <span class="font-semibold text-on-surface">
+                <span class="font-semibold text-neutral-900">
 
                     {{ $to->translatedFormat('d \\d\\e F') }}
 
@@ -44,9 +44,9 @@ $to = now()->addDays(4);
 
             </p>
 
-            <p class="mt-2 text-sm font-medium text-emerald-700">
+            <p class="mt-2 text-xs font-bold text-emerald-700">
 
-                Envío gratis en compras mayores a $999
+                Envío gratis desde ${{ number_format(config('shipping.free_shipping_from'), 0) }}
 
             </p>
 
@@ -54,15 +54,15 @@ $to = now()->addDays(4);
 
     </div>
 
-    <div class="my-5 border-t border-outline-variant/30"></div>
+    <div class="my-4 border-t border-neutral-200"></div>
 
     <div class="flex items-center gap-3">
 
-        <span class="material-symbols-outlined text-lg text-primary" aria-hidden="true">
+        <span class="material-symbols-outlined text-lg text-[#bd7710]" aria-hidden="true">
             replay
         </span>
 
-        <span class="text-sm text-secondary">
+        <span class="text-xs text-neutral-600">
 
             Devoluciones fáciles durante 30 días
 

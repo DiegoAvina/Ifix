@@ -2,6 +2,7 @@
 
 namespace App\Services\Checkout;
 
+use App\Services\Storefront\StorefrontAvailabilityQuery;
 use App\Services\Shipping\StandardShippingModifier;
 use InvalidArgumentException;
 use Lunar\Exceptions\Carts\CartException;
@@ -10,6 +11,7 @@ use Lunar\Facades\ShippingManifest;
 use Lunar\Models\Address;
 use Lunar\Models\Cart;
 use Lunar\Models\Order;
+use Lunar\Models\ProductVariant;
 
 /**
  * Orquesta el paso de "carrito listo" a "Order creada".
@@ -21,6 +23,10 @@ use Lunar\Models\Order;
  */
 class CheckoutService
 {
+    public function __construct(
+        protected StorefrontAvailabilityQuery $storefrontAvailability,
+    ) {}
+
     /**
      * Aplica una dirección guardada del cliente como dirección de
      * envío del carrito, y de paso activa nuestra única opción de
@@ -62,7 +68,7 @@ class CheckoutService
      */
     public function placeOrder(Cart $cart): Order
     {
-        $cart = $cart->fresh(['lines.purchasable']);
+        $cart = $cart->fresh(['lines.purchasable.product']);
 
         if (! $cart || $cart->lines->isEmpty()) {
             throw new InvalidArgumentException(
@@ -85,7 +91,17 @@ class CheckoutService
 
             $variant = $line->purchasable;
 
-            if ($variant && ! $variant->canBeFulfilledAtQuantity($line->quantity)) {
+            if (! $variant instanceof ProductVariant
+                || $variant->product?->status !== 'published'
+                || ! $this->storefrontAvailability
+                    ->apply(\Lunar\Models\Product::query()->whereKey($variant->product_id), true)
+                    ->exists()) {
+                throw new InvalidArgumentException(
+                    'Un producto del carrito ya no está disponible.'
+                );
+            }
+
+            if (! $variant->canBeFulfilledAtQuantity($line->quantity)) {
 
                 $name = $variant->getDescription();
 

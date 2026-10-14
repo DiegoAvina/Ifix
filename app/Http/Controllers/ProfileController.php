@@ -8,16 +8,31 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use App\Services\Order\OrderViewService;
+use Lunar\Models\Order;
 
 class ProfileController extends Controller
 {
     /**
      * Display the user's profile form.
      */
-    public function edit(Request $request): View
+    public function edit(Request $request, OrderViewService $orderView): View
     {
+        $orders = Order::query()
+            ->where('user_id', $request->user()->id)
+            ->whereNotNull('reference')
+            ->orderByDesc('created_at')
+            ->limit(3)
+            ->get()
+            ->map(fn (Order $order) => $orderView->map($order));
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'orders' => $orders,
+            'ordersCount' => Order::query()
+                ->where('user_id', $request->user()->id)
+                ->whereNotNull('reference')
+                ->count(),
         ]);
     }
 

@@ -18,7 +18,37 @@ class ProfileTest extends TestCase
             ->actingAs($user)
             ->get('/profile');
 
-        $response->assertOk();
+        $response
+            ->assertOk()
+            ->assertSee('Tu espacio IFIX')
+            ->assertSee('Pedidos recientes')
+            ->assertSee('Datos de tu cuenta');
+    }
+
+    public function test_customer_can_view_their_empty_order_history(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/mis-pedidos');
+
+        $response
+            ->assertOk()
+            ->assertSee('Mis pedidos')
+            ->assertSee('Aún no tienes pedidos')
+            ->assertSee(route('profile.edit'));
+    }
+
+    public function test_dashboard_redirects_to_the_customer_account(): void
+    {
+        $user = User::factory()->create([
+            'email_verified_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get('/dashboard')
+            ->assertRedirect(route('profile.edit'));
     }
 
     public function test_profile_information_can_be_updated(): void

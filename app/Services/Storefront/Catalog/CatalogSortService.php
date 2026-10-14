@@ -17,7 +17,7 @@ class CatalogSortService
 
             new SortOptionData(
                 value: 'newest',
-                label: 'Más recientes',
+                label: 'Lanzamientos recientes',
                 selected: $current === 'newest',
             ),
 
