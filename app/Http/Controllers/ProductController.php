@@ -19,6 +19,13 @@ class ProductController extends Controller
             404,
         );
 
+        // Una sola URL por producto: /productos/{id} redirige al slug.
+        $slug = $product->defaultUrl?->slug;
+
+        if ($slug && request()->route()->originalParameter('product') !== $slug) {
+            return redirect()->route('catalog.show', $slug, 301);
+        }
+
         $product->load([
             'brand',
             'variants.prices',

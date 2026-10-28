@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Mi cuenta | IFIX')
+@section('meta_robots', 'noindex, nofollow')
 
 @section('content')
 <div class="min-h-screen bg-[#f5f5f3] py-8 text-neutral-900 dark:bg-[#111315] dark:text-white sm:py-12">

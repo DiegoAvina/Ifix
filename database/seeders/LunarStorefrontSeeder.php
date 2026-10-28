@@ -43,7 +43,12 @@ class LunarStorefrontSeeder extends Seeder
             ],
         );
         if (! $hasDefaultCurrency || Price::query()->doesntExist()) {
-            Currency::query()->where('default', true)->update(['default' => false]);
+            // Excluir MXN: si se apagara aquí, el update() de abajo no detecta
+            // cambios en el modelo en memoria y no la vuelve a marcar.
+            Currency::query()
+                ->where('default', true)
+                ->where('id', '!=', $mxn->id)
+                ->update(['default' => false]);
             $mxn->update([
                 'default' => true,
                 'enabled' => true,

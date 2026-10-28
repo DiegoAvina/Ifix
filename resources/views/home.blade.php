@@ -1,6 +1,45 @@
 @extends('layouts.app')
 
-@section('title', 'IFIX | Detallado automotriz profesional')
+@section('title', 'IFIX | Productos para detallado automotriz profesional')
+@section('meta_description', 'Compra productos IFIX para detallado automotriz: shampoo para autos, pulimentos de corte, ceras de grafeno y silicio, selladores cerámicos y restauradores de plásticos. Envíos a todo México.')
+
+@push('head')
+    <script type="application/ld+json" nonce="{{ $cspNonce }}">
+        {!! json_encode([
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    '@id' => url('/').'#organization',
+                    'name' => 'IFIX',
+                    'url' => url('/'),
+                    'logo' => asset('images/og-ifix.jpg'),
+                    'description' => 'Productos para detallado automotriz.',
+                    'contactPoint' => [
+                        '@type' => 'ContactPoint',
+                        'telephone' => '+52-55-4169-8230',
+                        'contactType' => 'customer service',
+                        'areaServed' => 'MX',
+                        'availableLanguage' => 'Spanish',
+                    ],
+                ],
+                [
+                    '@type' => 'WebSite',
+                    '@id' => url('/').'#website',
+                    'name' => 'IFIX',
+                    'url' => url('/'),
+                    'inLanguage' => 'es-MX',
+                    'publisher' => ['@id' => url('/').'#organization'],
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => route('catalog.index').'?search={search_term_string}',
+                        'query-input' => 'required name=search_term_string',
+                    ],
+                ],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+@endpush
 
 @section('content')
     @include('partials.hero')

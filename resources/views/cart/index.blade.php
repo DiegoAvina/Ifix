@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Carrito de compras')
+@section('meta_robots', 'noindex, nofollow')
 
 @section('content')
 

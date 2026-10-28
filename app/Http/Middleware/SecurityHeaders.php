@@ -33,7 +33,12 @@ class SecurityHeaders
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+        $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+
+        // No anunciar versión de PHP/servidor.
+        $response->headers->remove('X-Powered-By');
+        header_remove('X-Powered-By');
         $response->headers->set('Content-Security-Policy', $this->buildCsp($nonce));
 
         // HSTS solo tiene sentido (y solo lo honran los navegadores) en

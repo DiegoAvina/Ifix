@@ -1,6 +1,61 @@
 @extends('layouts.app')
 
+@php
+    $productSummary = \Illuminate\Support\Str::limit(
+        trim(preg_replace('/\s+/', ' ', strip_tags((string) $product->description))),
+        155,
+    ) ?: "Compra {$product->name} en la tienda oficial IFIX. Envíos a todo México.";
+@endphp
+
 @section('title', $product->name . ' | IFIX')
+@section('meta_description', $productSummary)
+@section('canonical', $product->url)
+@section('og_type', 'product')
+
+@if ($product->image)
+    @section('og_image', $product->image->url)
+@endif
+
+@push('head')
+    <meta property="product:price:amount" content="{{ number_format($product->price->raw, 2, '.', '') }}">
+    <meta property="product:price:currency" content="{{ $product->price->currency }}">
+
+    <script type="application/ld+json" nonce="{{ $cspNonce }}">
+        {!! json_encode([
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                array_filter([
+                    '@type' => 'Product',
+                    'name' => $product->name,
+                    'description' => $productSummary,
+                    'sku' => $product->inventory->sku,
+                    'image' => collect($product->gallery)->pluck('url')->filter()->values()->all(),
+                    'brand' => $product->brand->name ? ['@type' => 'Brand', 'name' => $product->brand->name] : null,
+                    'url' => $product->url,
+                    'offers' => [
+                        '@type' => 'Offer',
+                        'url' => $product->url,
+                        'price' => number_format($product->price->raw, 2, '.', ''),
+                        'priceCurrency' => $product->price->currency,
+                        'availability' => $product->inventory->available
+                            ? 'https://schema.org/InStock'
+                            : 'https://schema.org/OutOfStock',
+                        'itemCondition' => 'https://schema.org/NewCondition',
+                        'seller' => ['@type' => 'Organization', 'name' => 'IFIX'],
+                    ],
+                ]),
+                [
+                    '@type' => 'BreadcrumbList',
+                    'itemListElement' => [
+                        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Inicio', 'item' => route('home')],
+                        ['@type' => 'ListItem', 'position' => 2, 'name' => 'Catálogo', 'item' => route('catalog.index')],
+                        ['@type' => 'ListItem', 'position' => 3, 'name' => $product->name, 'item' => $product->url],
+                    ],
+                ],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+@endpush
 
 @section('content')
     <div class="min-h-screen bg-[#f5f5f3]">

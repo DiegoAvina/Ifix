@@ -1,6 +1,31 @@
 @extends('layouts.app')
 
-@section('title', 'Catálogo IFIX | Detallado automotriz')
+@php
+    $catalogPage = max(1, (int) request('page', 1));
+    // Búsquedas, filtros y orden generan variantes del mismo listado.
+    $catalogIsFiltered = collect(request()->query())->except('page')->filter(fn ($value) => filled($value))->isNotEmpty();
+@endphp
+
+@section('title', 'Catálogo de productos para detallado automotriz'.($catalogPage > 1 ? " | Página {$catalogPage}" : '').' | IFIX')
+@section('meta_description', 'Catálogo completo IFIX: limpiadores, shampoo, pulimentos de corte alto y medio, abrillantadores, ceras, recubrimientos cerámicos y acondicionadores de plásticos y llantas.')
+@section('canonical', $catalogPage > 1 ? route('catalog.index', ['page' => $catalogPage]) : route('catalog.index'))
+
+@if ($catalogIsFiltered)
+    @section('meta_robots', 'noindex, follow')
+@endif
+
+@push('head')
+    <script type="application/ld+json" nonce="{{ $cspNonce }}">
+        {!! json_encode([
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Inicio', 'item' => route('home')],
+                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Catálogo', 'item' => route('catalog.index')],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+@endpush
 
 @section('content')
     <div x-data="{ filtersOpen: false }" @open-catalog-filters.window="filtersOpen = true">

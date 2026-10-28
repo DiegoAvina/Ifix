@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Pedido confirmado | Ifix')
+@section('meta_robots', 'noindex, nofollow')
 
 @section('content')
 

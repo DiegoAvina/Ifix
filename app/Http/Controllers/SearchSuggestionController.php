@@ -10,12 +10,14 @@ class SearchSuggestionController extends Controller
 {
     public function __invoke(
         Request $request,
-        SearchSuggestionService $search,
+        SearchSuggestionService $suggestions,
     ): JsonResponse {
 
+        $search = $request->query('search');
+
         return response()->json([
-            'products' => $search->search(
-                $request->string('search')->toString()
+            'products' => $suggestions->search(
+                is_string($search) ? $search : ''
             ),
         ]);
 

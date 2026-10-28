@@ -87,7 +87,9 @@ class PaymentWebhookController extends Controller
                 'data_id' => $dataId,
             ]);
 
-            return response()->json(['error' => $e->getMessage()], 200);
+            // El detalle (montos, ids de Order, configuración) queda solo
+            // en el log; al exterior no se le da ninguna pista.
+            return response()->json(['error' => 'rejected'], 200);
 
         } catch (Throwable $e) {
 

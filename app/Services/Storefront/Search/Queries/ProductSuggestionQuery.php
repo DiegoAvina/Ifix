@@ -2,21 +2,27 @@
 
 namespace App\Services\Storefront\Search\Queries;
 
-use App\Services\Storefront\Catalog\Attributes\AttributeQueryBuilder;
+use App\Services\Storefront\Search\FuzzyProductMatcher;
 use Illuminate\Support\Collection;
 use Lunar\Models\Product;
 
 class ProductSuggestionQuery
 {
     public function __construct(
-        protected AttributeQueryBuilder $attributes,
+        protected FuzzyProductMatcher $matcher,
     ) {}
 
     public function search(string $search, int $limit = 6): Collection
     {
-        $search = trim($search);
+        $search = mb_substr(trim($search), 0, 100);
 
         if ($search === '') {
+            return collect();
+        }
+
+        $ids = $this->matcher->match($search, $limit);
+
+        if ($ids === []) {
             return collect();
         }
 
@@ -25,21 +31,12 @@ class ProductSuggestionQuery
                 'brand',
                 'variants.prices',
                 'media',
+                'defaultUrl',
             ])
             ->where('status', 'published')
-            ->where(function ($query) use ($search) {
-
-                $this->attributes
-                    ->for($query)
-                    ->locale('es')
-                    ->contains('name', $search);
-
-                $query->orWhereHas('variants', function ($variant) use ($search) {
-                    $variant->where('sku', 'like', "%{$search}%");
-                });
-
-            })
-            ->limit($limit)
-            ->get();
+            ->whereIn('id', $ids)
+            ->get()
+            ->sortBy(fn (Product $product) => array_search($product->id, $ids, true))
+            ->values();
     }
 }

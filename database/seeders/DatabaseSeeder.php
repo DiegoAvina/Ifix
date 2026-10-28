@@ -30,5 +30,10 @@ class DatabaseSeeder extends Seeder
             LunarStorefrontSeeder::class,
             DefaultTaxConfigurationSeeder::class,
         ]);
+
+        // Las pruebas arman sus propios productos.
+        if (! app()->environment('testing')) {
+            $this->call(IfixCatalogSeeder::class);
+        }
     }
 }

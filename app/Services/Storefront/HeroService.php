@@ -3,6 +3,7 @@
 namespace App\Services\Storefront;
 
 use App\Models\HeroSlide;
+use App\Support\SafeHtml;
 use Illuminate\Support\Facades\Storage;
 
 class HeroService
@@ -23,6 +24,8 @@ class HeroService
                             : asset(Storage::url($slide->image))
                     );
 
+                $buttonUrl = SafeHtml::url($slide->button_url);
+
                 return [
 
                     'eyebrow' => 'Patrocinado',
@@ -33,12 +36,12 @@ class HeroService
 
                     'primaryBtn' => [
                         'label' => $slide->button_text ?: 'Ver más',
-                        'url' => $slide->button_url ?: '#',
+                        'url' => $buttonUrl,
                     ],
 
                     'secondaryBtn' => [
                         'label' => 'Explorar',
-                        'url' => $slide->button_url ?: '#',
+                        'url' => $buttonUrl,
                     ],
 
                     'image' => $image,

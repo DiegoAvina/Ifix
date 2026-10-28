@@ -64,11 +64,7 @@ class CartController extends Controller
                 'required',
                 'integer',
                 'min:1',
-            ],
-
-            'meta' => [
-                'nullable',
-                'array',
+                'max:999',
             ],
 
         ]);
@@ -82,13 +78,12 @@ class CartController extends Controller
                     $validated['variant_id']
                 );
 
+            // Sin meta del cliente: se copiaría tal cual a la orden y al panel.
             $this->cartService->addProduct(
 
                 variant: $variant,
 
                 quantity: $validated['quantity'],
-
-                meta: $validated['meta'] ?? [],
 
             );
 
@@ -108,6 +103,7 @@ class CartController extends Controller
                 'required',
                 'integer',
                 'min:1',
+                'max:999',
             ],
         ]);
 

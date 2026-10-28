@@ -13,6 +13,12 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
+    # Bloquear archivos ocultos (.env, .git, etc.), excepto .well-known
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Nunca ejecutar scripts subidos a /storage
+    RewriteRule ^storage/.*\.(php\d?|phtml|phar)$ - [F,L,NC]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
@@ -22,4 +28,13 @@
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Archivos subidos (/storage) no pasan por Laravel: aislarlos para que un
+# SVG o HTML no pueda ejecutar JavaScript en nuestro dominio.
+<IfModule mod_headers.c>
+    <If "%{REQUEST_URI} =~ m#^/storage/#">
+        Header always set Content-Security-Policy "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox"
+        Header always set X-Content-Type-Options "nosniff"
+    </If>
 </IfModule>

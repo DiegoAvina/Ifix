@@ -28,13 +28,20 @@ class HeroSlideResource extends Resource
 
         Forms\Components\TextInput::make('subtitle'),
 
+        // Sin SVG: puede contener JavaScript y se serviría desde nuestro dominio.
         Forms\Components\FileUpload::make('image')
             ->image()
+            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+            ->maxSize(4096)
             ->directory('hero-slides'),
 
         Forms\Components\TextInput::make('button_text'),
 
-        Forms\Components\TextInput::make('button_url'),
+        // Solo rutas internas (/productos, #seccion) o enlaces http(s);
+        // bloquea javascript:, data:, etc.
+        Forms\Components\TextInput::make('button_url')
+            ->maxLength(2048)
+            ->regex('~^(/(?!/)|#|https?://)~i'),
 
         Forms\Components\Toggle::make('active')
             ->default(true),

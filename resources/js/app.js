@@ -792,6 +792,135 @@ window.addToCartButton = function (url, variantId, minQuantity = 1, quantityIncr
 
 
 // ============================================================
+// BARRA DE BÚSQUEDA (sugerencias mientras se escribe)
+// ============================================================
+//
+// El servidor hace la coincidencia aproximada (errores de escritura,
+// sinónimos); aquí solo se consulta con debounce y se muestran los
+// productos debajo de la barra.
+
+window.searchBox = function (suggestionsUrl) {
+
+    return {
+
+        query: '',
+
+        results: [],
+
+        open: false,
+
+        loading: false,
+
+        searched: false,
+
+        active: -1,
+
+        controller: null,
+
+
+        init() {
+            this.query = this.$refs.input.value;
+        },
+
+
+        async fetchResults() {
+
+            const search = this.query.trim();
+
+            this.controller?.abort();
+
+            if (search.length < 2) {
+                this.results = [];
+                this.searched = false;
+                this.open = false;
+                this.loading = false;
+                return;
+            }
+
+            this.controller = new AbortController();
+
+            this.loading = true;
+
+            try {
+
+                const url = new URL(suggestionsUrl, window.location.origin);
+
+                url.searchParams.set('search', search);
+
+                const response = await fetch(url, {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    signal: this.controller.signal,
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                this.results = Array.isArray(data.products) ? data.products : [];
+                this.active = -1;
+                this.searched = true;
+                this.open = true;
+                this.loading = false;
+
+            } catch (error) {
+
+                if (error.name === 'AbortError') {
+                    return;
+                }
+
+                console.error('Error buscando sugerencias:', error);
+
+                this.loading = false;
+            }
+        },
+
+
+        move(step) {
+
+            if (!this.results.length) {
+                return;
+            }
+
+            this.open = true;
+
+            this.active = (this.active + step + this.results.length) % this.results.length;
+        },
+
+
+        submit(event) {
+
+            // Con flecha seleccionada, Enter abre ese producto.
+            if (this.open && this.results[this.active]) {
+                event.preventDefault();
+                window.location.href = this.results[this.active].url;
+            }
+        },
+
+
+        catalogUrl() {
+
+            const url = new URL(this.$root.action, window.location.origin);
+
+            url.searchParams.set('search', this.query.trim());
+
+            return url.toString();
+        },
+
+
+        close() {
+            this.open = false;
+            this.active = -1;
+        },
+
+    };
+
+};
+
+
+// ============================================================
 // ACCIONES DELEGADAS (reemplazan onclick/onchange inline, que la
 // CSP bloquea con script-src sin 'unsafe-inline')
 // ============================================================

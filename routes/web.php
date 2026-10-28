@@ -12,6 +12,8 @@ use App\Http\Controllers\ShippingController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SeoController;
+use App\Http\Middleware\NormalizeCatalogQuery;
 use App\Http\Controllers\Payment\PaymentController;
 use App\Http\Controllers\Payment\MercadoPagoController;
 use App\Http\Controllers\Payment\PaymentWebhookController;
@@ -37,12 +39,19 @@ Route::bind('product', function (string $value): Product {
 Route::get('/', [HomeController::class, 'index'])
     ->name('home');
 
+Route::get('/robots.txt', [SeoController::class, 'robots'])
+    ->name('seo.robots');
+
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])
+    ->name('seo.sitemap');
+
 Route::get('/dashboard', function () {
     return redirect()->route('profile.edit');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
 Route::get('/productos', [CatalogController::class, 'index'])
+    ->middleware(NormalizeCatalogQuery::class)
     ->name('catalog.index');
 
 
@@ -65,18 +74,22 @@ Route::get('/carrito/data', [CartController::class, 'data'])
 
 
 Route::post('/carrito/items', [CartController::class, 'store'])
+    ->middleware('throttle:cart-actions')
     ->name('cart.items.store');
 
 
 Route::patch('/carrito/items/{line}', [CartController::class, 'update'])
+    ->middleware('throttle:cart-actions')
     ->name('cart.items.update');
 
 
 Route::delete('/carrito/items/{line}', [CartController::class, 'destroy'])
+    ->middleware('throttle:cart-actions')
     ->name('cart.items.destroy');
 
 
 Route::delete('/carrito', [CartController::class, 'clear'])
+    ->middleware('throttle:cart-actions')
     ->name('cart.clear');
 
 
@@ -101,13 +114,15 @@ Route::delete('/carrito', [CartController::class, 'clear'])
 Route::post(
     '/shipping/postal-code',
     [ShippingController::class, 'update']
-)->name('shipping.postal-code');
+)->middleware('throttle:cart-actions')
+    ->name('shipping.postal-code');
 
 
 Route::delete(
     '/shipping/postal-code',
     [ShippingController::class, 'destroy']
-)->name('shipping.postal-code.destroy');
+)->middleware('throttle:cart-actions')
+    ->name('shipping.postal-code.destroy');
 
 
 /*
@@ -149,7 +164,8 @@ Route::middleware('auth')->group(function () {
     Route::delete(
         '/profile',
         [ProfileController::class, 'destroy']
-    )->name('profile.destroy');
+    )->middleware('throttle:6,1,delete-account')
+        ->name('profile.destroy');
 
 });
 

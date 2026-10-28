@@ -30,7 +30,7 @@ class SearchSuggestionService
 
                     sku: $variant?->sku ?? '',
 
-                    image: $product->thumbnail?->getUrl(),
+                    image: $product->getFirstMediaUrl('images') ?: null,
 
                     brand: $product->brand?->name,
 
@@ -39,8 +39,8 @@ class SearchSuggestionService
                     inStock: true,
 
                     url: route(
-                        '#',
-                        $product
+                        'catalog.show',
+                        $product->defaultUrl?->slug ?? $product->id
                     ),
                 );
 

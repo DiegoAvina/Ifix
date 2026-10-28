@@ -33,6 +33,14 @@ class AttributeQueryBuilder
      */
     protected function jsonPath(string $attribute): string
     {
+        // Ambos se interpolan en SQL crudo (no pueden ir como binding):
+        // solo se aceptan identificadores simples.
+        foreach ([$attribute, $this->locale] as $identifier) {
+            if (! preg_match('/^[a-z][a-z0-9_]*$/i', $identifier)) {
+                throw new \InvalidArgumentException("Identificador de atributo no válido: {$identifier}");
+            }
+        }
+
         return '$.' . $attribute . '.value.' . $this->locale;
     }
 

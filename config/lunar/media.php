@@ -1,16 +1,17 @@
 <?php
 
+use App\Media\SafeMediaDefinitions;
 use Lunar\Base\StandardMediaDefinitions;
 
 return [
 
     'definitions' => [
         'asset' => StandardMediaDefinitions::class,
-        'brand' => StandardMediaDefinitions::class,
-        'collection' => StandardMediaDefinitions::class,
-        'product' => StandardMediaDefinitions::class,
-        'product-option' => StandardMediaDefinitions::class,
-        'product-option-value' => StandardMediaDefinitions::class,
+        'brand' => SafeMediaDefinitions::class,
+        'collection' => SafeMediaDefinitions::class,
+        'product' => SafeMediaDefinitions::class,
+        'product-option' => SafeMediaDefinitions::class,
+        'product-option-value' => SafeMediaDefinitions::class,
     ],
 
     'collection' => 'images',

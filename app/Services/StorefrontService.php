@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\HeroSlide;
+use App\Support\SafeHtml;
 use Illuminate\Support\Facades\Storage;
 use Lunar\Models\Brand;
 use Lunar\Models\Collection;
@@ -38,12 +39,12 @@ class StorefrontService
 
                     'primaryBtn' => [
                         'label' => $slide->button_text ?: 'Ver más',
-                        'url' => $slide->button_url ?: '#',
+                        'url' => SafeHtml::url($slide->button_url),
                     ],
 
                     'secondaryBtn' => [
                         'label' => 'Explorar',
-                        'url' => $slide->button_url ?: '#',
+                        'url' => SafeHtml::url($slide->button_url),
                     ],
 
                     'image' => $image,

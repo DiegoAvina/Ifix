@@ -6,7 +6,7 @@
 
     @if($product->description)
         <div class="prose mt-4 max-w-none prose-p:text-neutral-600 prose-headings:font-heading prose-headings:text-neutral-950 prose-strong:text-neutral-900 prose-a:text-[#a76500]">
-            {!! $product->description !!}
+            {!! \App\Support\SafeHtml::clean($product->description) !!}
         </div>
     @else
         <p class="mt-4 text-sm leading-6 text-neutral-600">

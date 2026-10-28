@@ -30,7 +30,7 @@
         <label class="sr-only" for="catalog-search">Buscar productos</label>
         <div class="flex h-10 items-center rounded-full border border-neutral-200 bg-neutral-50 px-3 focus-within:border-[#d98b12] sm:w-56">
             <span class="material-symbols-outlined text-lg text-neutral-400" aria-hidden="true">search</span>
-            <input id="catalog-search" type="search" name="search" value="{{ request('search') }}"
+            <input id="catalog-search" type="search" name="search" value="{{ is_string(request('search')) ? request('search') : '' }}"
                 placeholder="Buscar productos..."
                 class="min-w-0 flex-1 border-0 bg-transparent px-2 text-xs text-neutral-900 placeholder:text-neutral-400 focus:ring-0">
         </div>

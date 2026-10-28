@@ -99,6 +99,12 @@
 
             <img
 
+                src="{{ $product->image?->url }}"
+
+                alt="{{ $product->image?->alt ?: $product->name }}"
+
+                fetchpriority="high"
+
                 :src="current.url"
 
                 :alt="current.alt"

@@ -4,12 +4,15 @@ namespace App\Providers;
 
 use App\Services\Lunar\SafeTelemetryService;
 use App\Services\Shipping\StandardShippingModifier;
+use App\Services\Storefront\Search\FuzzyProductMatcher;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Lunar\Base\TelemetryServiceInterface;
 use Lunar\Base\ShippingModifiers;
+use Lunar\Models\Product;
+use Lunar\Models\ProductVariant;
 //panel
 use Lunar\Admin\Support\Facades\LunarPanel;
 
@@ -34,6 +37,12 @@ class AppServiceProvider extends ServiceProvider
             ->add(StandardShippingModifier::class);
 
         $this->configureRateLimiting();
+
+        // El índice de búsqueda aproximada se reconstruye al editar productos.
+        foreach ([Product::class, ProductVariant::class] as $model) {
+            $model::saved(fn () => FuzzyProductMatcher::flush());
+            $model::deleted(fn () => FuzzyProductMatcher::flush());
+        }
     }
 
     /**
@@ -79,11 +88,21 @@ class AppServiceProvider extends ServiceProvider
         // del frontend (el buscador del navbar es un <form> GET normal
         // hacia el catálogo, no llama este endpoint) — sigue siendo un
         // endpoint público sin autenticación, así que se limita igual.
-        // 30/min por IP deja margen si en el futuro se conecta a un
-        // input con debounce típico (200-300ms) sin abrir la puerta a
-        // scraping sistemático del catálogo.
+        // La barra de búsqueda lo consulta mientras se escribe (con
+        // debounce); 60/min por IP cubre varias búsquedas seguidas sin
+        // abrir la puerta a scraping sistemático del catálogo.
         RateLimiter::for('search-suggestions', function (Request $request) {
-            return Limit::perMinute(30)->by($request->ip());
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
+        // Acciones que escriben en el carrito o la sesión (agregar,
+        // cambiar cantidad, código postal) son públicas y crean filas
+        // por visitante. 60/min cubre de sobra a una persona dando
+        // clics, y frena scripts que inflan la base de datos.
+        RateLimiter::for('cart-actions', function (Request $request) {
+            return Limit::perMinute(60)->by(
+                $request->user()?->id ?: $request->ip()
+            );
         });
     }
 }

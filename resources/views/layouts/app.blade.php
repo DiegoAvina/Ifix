@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-MX">
 
 <head>
 
@@ -16,9 +16,11 @@
         content="{{ csrf_token() }}"
     >
 
-    <title>
-        @yield('title', 'Ifix | Innovando tu Mundo')
-    </title>
+    @include('partials.seo')
+
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+
+    @stack('head')
 
     @include('partials.theme-script')
 
