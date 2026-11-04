@@ -2,15 +2,25 @@
 
 namespace App\Providers;
 
+use App\Filament\Resources\HeroSlideResource;
+use App\PaymentTypes\MercadoPagoPayment;
 use App\Services\Lunar\SafeTelemetryService;
 use App\Services\Shipping\StandardShippingModifier;
+use App\Services\Storefront\CategoryService;
 use App\Services\Storefront\Search\FuzzyProductMatcher;
+use Filament\Panel;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Lunar\Base\TelemetryServiceInterface;
 use Lunar\Base\ShippingModifiers;
+use Lunar\Facades\Payments;
 use Lunar\Models\Product;
 use Lunar\Models\ProductVariant;
 //panel
@@ -23,7 +33,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        LunarPanel::register();
+        LunarPanel::panel(fn (Panel $panel) => $panel->resources([
+            HeroSlideResource::class,
+        ]))->register();
     }
 
     /**
@@ -36,13 +48,58 @@ class AppServiceProvider extends ServiceProvider
         $this->app->make(ShippingModifiers::class)
             ->add(StandardShippingModifier::class);
 
+        // Driver de las Transactions de Mercado Pago; sin él, abrir en el
+        // panel un pedido pagado lanza "Driver [mercadopago] not supported".
+        Payments::extend(MercadoPagoPayment::DRIVER, fn ($app) => $app->make(MercadoPagoPayment::class));
+
         $this->configureRateLimiting();
+
+        $this->configureAuthEmails();
+
+        // Detrás de un túnel o proxy HTTPS la petición llega como http; sin
+        // esto los enlaces (y las URLs que recibe Mercado Pago) saldrían en http.
+        // Solo para el host de APP_URL: en http://127.0.0.1:8000 forzarlo manda
+        // al navegador a https://127.0.0.1:8000, que `artisan serve` no atiende.
+        $appUrl = (string) config('app.url');
+
+        if (str_starts_with($appUrl, 'https://')
+            && ($this->app->runningInConsole() || request()->getHost() === parse_url($appUrl, PHP_URL_HOST))) {
+            URL::forceScheme('https');
+        }
+
+        // rescue: un fallo al leer las categorías no debe tumbar cada página
+        // (el navbar también se usa en las páginas de error).
+        View::composer('partials.navbar', fn ($view) => $view->with(
+            'storefrontCategories',
+            rescue(fn () => app(CategoryService::class)->all(), [], false),
+        ));
 
         // El índice de búsqueda aproximada se reconstruye al editar productos.
         foreach ([Product::class, ProductVariant::class] as $model) {
             $model::saved(fn () => FuzzyProductMatcher::flush());
             $model::deleted(fn () => FuzzyProductMatcher::flush());
         }
+    }
+
+    /**
+     * Correos de autenticación con las vistas de la tienda, en español,
+     * en lugar de las plantillas por defecto de Laravel.
+     */
+    protected function configureAuthEmails(): void
+    {
+        ResetPassword::toMailUsing(fn ($user, string $token) => (new MailMessage)
+            ->subject('Restablece tu contraseña de IFIX')
+            ->markdown('emails.auth.reset-password', [
+                'url' => route('password.reset', [
+                    'token' => $token,
+                    'email' => $user->getEmailForPasswordReset(),
+                ]),
+                'minutes' => config('auth.passwords.'.config('auth.defaults.passwords').'.expire'),
+            ]));
+
+        VerifyEmail::toMailUsing(fn ($user, string $url) => (new MailMessage)
+            ->subject('Confirma tu correo en IFIX')
+            ->markdown('emails.auth.verify-email', ['url' => $url]));
     }
 
     /**

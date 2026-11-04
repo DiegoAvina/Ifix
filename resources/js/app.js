@@ -29,6 +29,45 @@ window.SwiperModules = {
 
 
 // ============================================================
+// CARRUSEL DEL HERO
+// ============================================================
+//
+// Los slides fuera de pantalla quedan "inert" para que el foco
+// con teclado no llegue a sus enlaces y desacomode el carrusel.
+
+const syncHeroSlides = (swiper) => {
+    swiper.slides.forEach((slide, index) => {
+        slide.inert = index !== swiper.activeIndex;
+    });
+};
+
+document.querySelectorAll('[data-hero-carousel]').forEach((carousel) => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    new Swiper(carousel, {
+        modules: [Navigation, Pagination, Autoplay],
+        rewind: true,
+        speed: 600,
+        autoplay: reduceMotion
+            ? false
+            : { delay: 6000, disableOnInteraction: false, pauseOnMouseEnter: true },
+        navigation: {
+            prevEl: carousel.querySelector('[data-hero-prev]'),
+            nextEl: carousel.querySelector('[data-hero-next]'),
+        },
+        pagination: {
+            el: carousel.querySelector('.swiper-pagination'),
+            clickable: true,
+        },
+        on: {
+            init: syncHeroSlides,
+            slideChange: syncHeroSlides,
+        },
+    });
+});
+
+
+// ============================================================
 // REGLAS DE CANTIDAD (min_quantity / quantity_increment)
 // ============================================================
 //

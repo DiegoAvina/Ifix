@@ -49,6 +49,12 @@ return [
         'access_token' => env('MERCADOPAGO_ACCESS_TOKEN'),
         'public_key' => env('MERCADOPAGO_PUBLIC_KEY'),
         'webhook_secret' => env('MERCADOPAGO_WEBHOOK_SECRET'),
+        // Horas para pagar un pedido desde que se crea; luego se cancela.
+        'payment_hours' => (int) env('MERCADOPAGO_PAYMENT_HOURS', 48),
+        // Credenciales de cuentas de prueba: no se envía el correo del cliente
+        // como pagador, porque Mercado Pago no deja mezclar usuarios reales
+        // con el comprador de prueba. Por defecto activo fuera de producción.
+        'test_mode' => (bool) env('MERCADOPAGO_TEST_MODE', env('APP_ENV', 'production') !== 'production'),
     ],
 
 ];

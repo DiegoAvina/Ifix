@@ -20,6 +20,8 @@ class CollectionService
 
         return $this->storefrontAvailability
             ->apply(Collection::query())
+            // Las categorías tienen su propia sección; aquí repetirían productos.
+            ->whereHas('group', fn (Builder $group) => $group->where('handle', '!=', CategoryService::GROUP_HANDLE))
             ->with([
                 'products' => $products,
                 'products.brand',

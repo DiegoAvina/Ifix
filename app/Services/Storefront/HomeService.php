@@ -9,6 +9,7 @@ class HomeService
         protected BrandService $brands,
         protected ProductService $products,
         protected CollectionService $collections,
+        protected CategoryService $categories,
 
     ) {}
 
@@ -23,8 +24,10 @@ class HomeService
             'products' => $this->products->featured(),
 
             'collections' => $this->collections->all(),
+
+            'categories' => $this->categories->all(),
         ];
     }
 
-   
+
 }

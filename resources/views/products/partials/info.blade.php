@@ -605,6 +605,15 @@ if (!data.success) {
             {{ $product->price->formatted }}
         </p>
 
+        @if ($product->price->compareFormatted)
+            <p
+                class="mt-1 flex items-baseline gap-2 text-sm tabular-nums text-neutral-500 sm:text-base">
+                <span class="sr-only">Precio anterior:</span>
+                <s>{{ $product->price->compareFormatted }}</s>
+                <span class="font-extrabold text-red-700 dark:text-red-400">-{{ $product->price->discountPercent }}%</span>
+            </p>
+        @endif
+
         <p
             class="mt-1.5 text-xs text-neutral-500">
             Precio con IVA incluido.

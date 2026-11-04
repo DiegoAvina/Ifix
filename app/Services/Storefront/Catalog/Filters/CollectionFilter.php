@@ -5,13 +5,13 @@ namespace App\Services\Storefront\Catalog\Filters;
 use App\Data\FilterData;
 use App\Data\FilterOptionData;
 use App\Services\Storefront\Catalog\UrlGenerator;
-use App\Support\LunarAttribute;
-use Lunar\Models\Collection;
+use App\Services\Storefront\CategoryService;
 
 class CollectionFilter
 {
     public function __construct(
         protected UrlGenerator $urlGenerator,
+        protected CategoryService $categories,
     ) {}
 
     public function build(): FilterData
@@ -24,36 +24,17 @@ class CollectionFilter
 
         $selectedCollections = array_map('strval', $selectedCollections);
 
-        $collections = Collection::query()
-            ->withCount('products')
-            ->whereHas('products')
-            ->get()
-            ->sortBy(fn ($collection) => LunarAttribute::text(
-                $collection->attribute_data,
-                'name'
-            ))
-            ->values();
-
-        $options = $collections->map(function ($collection) use ($selectedCollections) {
-
-            $name = LunarAttribute::text(
-                $collection->attribute_data,
-                'name'
-            );
-
-            return new FilterOptionData(
-                value: $collection->id,
-                label: $name,
-                count: $collection->products_count,
-                selected: in_array((string) $collection->id, $selectedCollections, true),
-                url: $this->urlGenerator->toggleFilter('collection', $collection->id),
-            );
-
-        })->toArray();
+        $options = array_map(fn (array $category) => new FilterOptionData(
+            value: $category['id'],
+            label: $category['name'],
+            count: $category['count'],
+            selected: in_array((string) $category['id'], $selectedCollections, true),
+            url: $this->urlGenerator->toggleFilter('collection', $category['id']),
+        ), $this->categories->all());
 
         return new FilterData(
             key: 'collection',
-            title: 'Colecciones',
+            title: 'Categorías',
             options: $options,
         );
     }

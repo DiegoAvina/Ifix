@@ -12,6 +12,10 @@ final readonly class PriceData
 
         public string $currency,
 
+        public ?string $compareFormatted = null,
+
+        public ?int $discountPercent = null,
+
     ) {
     }
 }

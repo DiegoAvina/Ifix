@@ -8,6 +8,7 @@ use App\Data\Order\OrderLineData;
 use App\Support\Money;
 use Lunar\Models\Order;
 use Lunar\Models\OrderAddress;
+use Lunar\Models\ProductVariant;
 
 class OrderViewService
 {
@@ -29,6 +30,12 @@ class OrderViewService
             'shippingAddress.country',
             'billingAddress.country',
         ]);
+
+        // Solo las líneas de producto: la de envío no tiene un modelo
+        // que cargar. El producto puede haberse borrado; mapLine lo tolera.
+        $order->lines
+            ->where('purchasable_type', ProductVariant::morphName())
+            ->loadMissing(['purchasable.product.media', 'purchasable.product.defaultUrl']);
 
         return new OrderData(
 
@@ -71,6 +78,10 @@ class OrderViewService
 
     protected function mapLine($line): OrderLineData
     {
+        $product = $line->purchasable instanceof ProductVariant
+            ? $line->purchasable->product
+            : null;
+
         return new OrderLineData(
             id: $line->id,
             description: $line->description,
@@ -79,6 +90,9 @@ class OrderViewService
             unitPrice: Money::format($line->unit_price),
             total: Money::format($line->total),
             type: $line->type,
+            option: $line->option ?: null,
+            image: $product?->getFirstMediaUrl('images') ?: null,
+            url: $product ? route('catalog.show', $product->defaultUrl?->slug ?? $product->id) : null,
         );
     }
 

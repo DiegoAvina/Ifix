@@ -41,7 +41,16 @@
             <p class="mt-1.5 text-[9px] uppercase tracking-wide text-neutral-400 sm:text-[10px]">SKU: {{ $inventory->sku }}</p>
         @endif
 
-        <p class="mt-3 text-lg font-extrabold tabular-nums text-neutral-950 sm:text-xl">{{ $product->price->formatted }}</p>
+        <div class="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <p class="text-lg font-extrabold tabular-nums text-neutral-950 sm:text-xl">{{ $product->price->formatted }}</p>
+            @if ($product->price->compareFormatted)
+                <p class="text-xs tabular-nums text-neutral-500 sm:text-sm">
+                    <span class="sr-only">Precio anterior:</span>
+                    <s>{{ $product->price->compareFormatted }}</s>
+                </p>
+                <p class="text-xs font-extrabold text-red-700 dark:text-red-400">-{{ $product->price->discountPercent }}%</p>
+            @endif
+        </div>
 
         <div class="mt-auto pt-4">
             @if ($available && $variantId)

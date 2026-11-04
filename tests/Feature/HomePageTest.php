@@ -18,6 +18,9 @@ class HomePageTest extends TestCase
                     'brands' => [],
                     'products' => [],
                     'collections' => [],
+                    'categories' => [
+                        ['id' => 1, 'name' => 'Protección cerámica', 'icon' => 'shield', 'count' => 5, 'url' => '/productos?collection[]=1'],
+                    ],
                 ]);
         });
 

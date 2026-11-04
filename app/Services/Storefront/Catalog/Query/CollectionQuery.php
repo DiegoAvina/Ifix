@@ -16,7 +16,7 @@ class CollectionQuery
 
         return $query->whereHas('collections', function ($q) use ($collection) {
 
-            $q->where('lunar_collections.id', $collection);
+            $q->whereIn('lunar_collections.id', (array) $collection);
 
         });
     }

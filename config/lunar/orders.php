@@ -63,34 +63,52 @@ return [
     'statuses' => [
 
         'awaiting-payment' => [
-            'label' => 'Awaiting Payment',
+            'label' => 'Esperando pago',
             'color' => '#848a8c',
-            'mailers' => [],
+            'mailers' => [App\Mail\Orders\OrderAwaitingPayment::class],
             'notifications' => [],
             'favourite' => true,
         ],
 
         'payment-offline' => [
-            'label' => 'Payment Offline',
+            'label' => 'Pago por confirmar',
             'color' => '#0A81D7',
-            'mailers' => [],
+            'mailers' => [App\Mail\Orders\OrderPaymentOffline::class],
             'notifications' => [],
             'favourite' => true,
         ],
 
         'payment-received' => [
-            'label' => 'Payment Received',
+            'label' => 'Pago recibido',
             'color' => '#6a67ce',
+            'mailers' => [App\Mail\Orders\OrderPaymentReceived::class],
+            'notifications' => [],
+            'favourite' => true,
+        ],
+
+        // Pagado pero sin stock al confirmarse el pago: surtir o reembolsar.
+        'payment-review' => [
+            'label' => 'Revisión de pago',
+            'color' => '#d97706',
             'mailers' => [],
             'notifications' => [],
             'favourite' => true,
         ],
 
         'dispatched' => [
-            'label' => 'Dispatched',
-            'mailers' => [],
+            'label' => 'Enviado',
+            'mailers' => [App\Mail\Orders\OrderDispatched::class],
             'notifications' => [],
             'favourite' => true,
+        ],
+
+        // Sin pagar dentro del plazo (ver orders:expire-unpaid).
+        'cancelled' => [
+            'label' => 'Cancelado',
+            'color' => '#dc2626',
+            'mailers' => [],
+            'notifications' => [],
+            'favourite' => false,
         ],
 
     ],

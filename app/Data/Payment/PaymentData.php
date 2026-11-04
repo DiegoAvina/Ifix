@@ -2,6 +2,8 @@
 
 namespace App\Data\Payment;
 
+use Carbon\CarbonInterface;
+
 /**
  * Datos necesarios para crear una Preference de Checkout Pro a partir
  * de una Order ya validada. Todo proviene del servidor (Order/Lunar) —
@@ -16,5 +18,6 @@ final readonly class PaymentData
         public float $amount,
         public string $currency,
         public ?string $payerEmail,
+        public CarbonInterface $expiresAt,
     ) {}
 }

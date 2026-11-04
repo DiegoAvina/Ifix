@@ -5,6 +5,8 @@ namespace App\Services\Payment;
 use App\Data\Payment\PaymentResultData;
 use App\Exceptions\Payment\TooManyWebhookAttemptsException;
 use App\Models\PaymentWebhookEvent;
+use App\Services\Order\OrderStockService;
+use App\Services\Order\StaffOrderNotifier;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
@@ -60,6 +62,9 @@ class PaymentWebhookService
     public function __construct(
         protected MercadoPagoService $mercadoPago,
         protected PaymentOrderService $paymentOrderService,
+        protected PaymentConfirmationMailer $paymentConfirmationMailer,
+        protected StaffOrderNotifier $staffOrderNotifier,
+        protected OrderStockService $orderStock,
     ) {}
 
     public static function buildExternalReference(int $orderId): string
@@ -87,17 +92,34 @@ class PaymentWebhookService
         ?string $xRequestId,
         array $payload
     ): array {
-        // 1. Autenticidad. Si esto falla, lanza InvalidWebhookSignatureException
-        // y el controller responde 401 sin procesar nada más.
-        $this->mercadoPago->verifyWebhookSignature($xSignature, $xRequestId, $dataId);
-
-        // 2. Solo procesamos notificaciones de pagos. MP también manda
-        // otros "type" (ej. merchant_order) que no necesitamos aquí.
+        // 1. Solo procesamos notificaciones de pagos. MP también manda otros
+        // avisos (merchant_order, o IPN con ?topic=) que no necesitamos. Se
+        // descartan antes de la firma: no tocan nada, y con 200 Mercado Pago
+        // deja de reintentarlos (antes recibían 502/401 y se reenviaban).
         if ($type !== 'payment' || ! $dataId) {
             return ['status' => 'ignored', 'message' => "Tipo de notificación no manejado: {$type}"];
         }
 
-        // 2.5. Límite por evento (rate limiting real de este flujo,
+        // 2. Autenticidad. Si esto falla, lanza InvalidWebhookSignatureException
+        // y el controller responde 401 sin procesar nada más.
+        $this->mercadoPago->verifyWebhookSignature($xSignature, $xRequestId, $dataId);
+
+        return $this->processPayment($dataId, $payload);
+    }
+
+    /**
+     * Pasos 2.5 a 11: consulta el pago real en Mercado Pago y lo aplica a
+     * la Order. Lo usa el webhook tras verificar la firma y el comando
+     * payments:mercadopago:sync, que parte de un payment_id escrito por
+     * la tienda: en ambos casos la fuente de verdad es la API de Mercado
+     * Pago, nunca el aviso en sí.
+     *
+     * @param  array<string,mixed>  $payload  Se guarda tal cual en payment_webhook_events.
+     * @return array{status: string, message: string}
+     */
+    public function processPayment(string $dataId, array $payload): array
+    {
+        // 2.5.Límite por evento (rate limiting real de este flujo,
         // ver MAX_LOOKUPS_PER_EVENT arriba). Se evalúa DESPUÉS de la
         // firma para no poder ser explotado por alguien sin el
         // secreto real, y ANTES de findPayment() para evitar la
@@ -168,15 +190,39 @@ class PaymentWebhookService
 
             if ($result->isApproved()) {
 
+                // El dinero ya se cobró, así que el pago se registra
+                // aunque la Order ya estuviera cancelada por vencimiento
+                // o falte stock. Sin stock queda en revisión para que la
+                // tienda decida si surte o reembolsa.
+                $stockCommitted = $this->orderStock->commit($lockedOrder);
+
                 $lockedOrder->update([
-                    'status' => 'payment-received',
+                    'status' => $stockCommitted ? 'payment-received' : 'payment-review',
                     'placed_at' => now(),
                 ]);
 
+                if ($stockCommitted) {
+                    // Solo llega aquí la primera captura exitosa (ver
+                    // $alreadyCaptured arriba), así que no se duplica. Se
+                    // envía tras el commit para no avisar de un pago cuya
+                    // transacción terminó revirtiéndose.
+                    DB::afterCommit(fn () => $this->paymentConfirmationMailer->send($lockedOrder));
+                } else {
+                    Log::warning('mercadopago.webhook.paid_without_stock', [
+                        'order_id' => $lockedOrder->id,
+                        'payment_id' => $result->providerPaymentId,
+                    ]);
+                }
+
+                // Al personal siempre, también sin stock: ahí es donde más
+                // hace falta que alguien lo revise. Misma garantía de una
+                // sola vez y tras el commit que el correo al cliente.
+                DB::afterCommit(fn () => $this->staffOrderNotifier->send($lockedOrder));
+
             }
             // Pendiente o rechazado: la Order se queda tal cual
-            // (awaiting-payment, placed_at = null). Ya quedó
-            // registrada la Transaction con el estado real para
+            // (awaiting-payment o cancelled, placed_at = null). Ya
+            // quedó registrada la Transaction con el estado real para
             // trazabilidad.
 
             $this->recordWebhookEvent($result, $lockedOrder, $payload);

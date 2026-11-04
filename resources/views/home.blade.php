@@ -77,21 +77,19 @@
                 </a>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
-                @foreach ([
-                    ['label' => 'Cerámicos', 'term' => 'cerámico', 'icon' => 'shield'],
-                    ['label' => 'Pulimentos', 'term' => 'pulimento', 'icon' => 'flare'],
-                    ['label' => 'Limpieza', 'term' => 'limpieza', 'icon' => 'water_drop'],
-                    ['label' => 'Restauradores', 'term' => 'restaurador', 'icon' => 'auto_fix_high'],
-                    ['label' => 'Accesorios y kits', 'term' => 'kit', 'icon' => 'inventory_2'],
-                ] as $category)
-                    <a href="{{ route('catalog.index', ['search' => $category['term']]) }}"
+            <div @class([
+                'grid grid-cols-2 gap-3 sm:gap-4',
+                'sm:grid-cols-3 lg:grid-cols-5' => count($categories) >= 5,
+                'lg:grid-cols-4' => count($categories) < 5,
+            ])>
+                @foreach ($categories as $category)
+                    <a href="{{ $category['url'] }}"
                         class="group flex min-h-32 flex-col justify-between rounded-xl border border-neutral-200 bg-white p-4 transition hover:-translate-y-1 hover:border-[#f5a623] hover:shadow-lg sm:min-h-40 sm:p-5">
                         <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-950 text-[#f5a623] transition group-hover:bg-[#f5a623] group-hover:text-neutral-950">
                             <span class="material-symbols-outlined" aria-hidden="true">{{ $category['icon'] }}</span>
                         </span>
                         <span class="mt-5 flex items-center justify-between gap-2 text-sm font-bold text-neutral-900">
-                            {{ $category['label'] }}
+                            {{ $category['name'] }}
                             <span class="material-symbols-outlined text-lg text-neutral-400 transition group-hover:translate-x-1 group-hover:text-[#bd7710]" aria-hidden="true">arrow_forward</span>
                         </span>
                     </a>
@@ -120,7 +118,7 @@
                 <p class="mt-5 max-w-xl text-sm leading-7 text-neutral-300 sm:text-base">
                     Productos profesionales IFIX para devolver color, brillo y vida a las superficies de tu auto.
                 </p>
-                <a href="{{ route('catalog.index', ['search' => 'restaurador']) }}"
+                <a href="{{ collect($categories)->firstWhere('name', 'Restauradores')['url'] ?? route('catalog.index', ['search' => 'restaurador']) }}"
                     class="mt-8 inline-flex items-center gap-2 rounded-full bg-[#f5a623] px-6 py-3 text-sm font-extrabold text-neutral-950 transition hover:bg-amber-400">
                     Explorar restauradores
                     <span class="material-symbols-outlined text-lg" aria-hidden="true">arrow_forward</span>

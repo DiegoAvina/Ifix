@@ -12,5 +12,8 @@ final readonly class OrderLineData
         public string $unitPrice,
         public string $total,
         public string $type,
+        public ?string $option = null,
+        public ?string $image = null,
+        public ?string $url = null,
     ) {}
 }

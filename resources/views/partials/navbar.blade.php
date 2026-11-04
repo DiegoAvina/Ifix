@@ -472,11 +472,9 @@ $navLinks = $navLinks ?? [
     <nav class="hidden border-t border-white/[0.06] bg-[#202122] lg:block" aria-label="Categorías de productos">
         <div class="mx-auto flex max-w-[1440px] items-center gap-7 overflow-x-auto px-8 py-2.5 text-[10px] font-extrabold uppercase tracking-wide text-white lg:gap-8">
             <a href="{{ route('catalog.index') }}" class="shrink-0 text-[#f5a623] transition hover:text-amber-300">Todos los productos</a>
-            <a href="{{ route('catalog.index', ['search' => 'pulimento']) }}" class="shrink-0 transition hover:text-[#f5a623]">Pulimento y restauradores</a>
-            <a href="{{ route('catalog.index', ['search' => 'limpieza']) }}" class="shrink-0 transition hover:text-[#f5a623]">Limpieza</a>
-            <a href="{{ route('catalog.index', ['search' => 'cerámico']) }}" class="shrink-0 transition hover:text-[#f5a623]">Protección cerámica</a>
-            <a href="{{ route('catalog.index', ['search' => 'accesorios']) }}" class="shrink-0 transition hover:text-[#f5a623]">Accesorios</a>
-            <a href="{{ route('catalog.index', ['search' => 'kit']) }}" class="shrink-0 transition hover:text-[#f5a623]">Kits completos</a>
+            @foreach ($storefrontCategories as $category)
+                <a href="{{ $category['url'] }}" class="shrink-0 transition hover:text-[#f5a623]">{{ $category['name'] }}</a>
+            @endforeach
         </div>
     </nav>
 
@@ -572,11 +570,9 @@ $navLinks = $navLinks ?? [
                     <div class="mt-4 border-t border-white/10 pt-4">
                         <p class="px-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-neutral-500">Categorías</p>
                         <a href="{{ route('catalog.index') }}" class="block rounded-xl px-4 py-3 text-sm font-semibold text-[#f5a623]">Todos los productos</a>
-                        <a href="{{ route('catalog.index', ['search' => 'pulimento']) }}" class="block rounded-xl px-4 py-3 text-sm text-neutral-300 hover:bg-white/5">Pulimento y restauradores</a>
-                        <a href="{{ route('catalog.index', ['search' => 'limpieza']) }}" class="block rounded-xl px-4 py-3 text-sm text-neutral-300 hover:bg-white/5">Limpieza</a>
-                        <a href="{{ route('catalog.index', ['search' => 'cerámico']) }}" class="block rounded-xl px-4 py-3 text-sm text-neutral-300 hover:bg-white/5">Protección cerámica</a>
-                        <a href="{{ route('catalog.index', ['search' => 'accesorios']) }}" class="block rounded-xl px-4 py-3 text-sm text-neutral-300 hover:bg-white/5">Accesorios</a>
-                        <a href="{{ route('catalog.index', ['search' => 'kit']) }}" class="block rounded-xl px-4 py-3 text-sm text-neutral-300 hover:bg-white/5">Kits completos</a>
+                        @foreach ($storefrontCategories as $category)
+                            <a href="{{ $category['url'] }}" class="block rounded-xl px-4 py-3 text-sm text-neutral-300 hover:bg-white/5">{{ $category['name'] }}</a>
+                        @endforeach
                     </div>
 
                 </nav>

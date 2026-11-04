@@ -182,7 +182,8 @@ Route::middleware('auth')->group(function () {
 | verificación de correo
 |
 */
-Route::middleware('auth')->group(function () {
+// Comprar exige correo verificado; consultar pedidos ya hechos, no.
+Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/checkout', [CheckoutController::class, 'index'])
         ->name('checkout.index');
@@ -199,6 +200,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/checkout/place', [CheckoutController::class, 'place'])
         ->middleware('throttle:checkout-place')
         ->name('checkout.place');
+
+});
+
+Route::middleware('auth')->group(function () {
 
     Route::get('/checkout/confirmacion/{order}', [OrderController::class, 'show'])
         ->name('checkout.confirmation');
@@ -224,6 +229,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
 
     Route::post('/pagos/mercadopago/{orderId}', [PaymentController::class, 'payWithMercadoPago'])
+        ->middleware('verified')
         ->name('payments.mercadopago.pay');
 
     Route::get('/pagos/mercadopago/success', [MercadoPagoController::class, 'success'])

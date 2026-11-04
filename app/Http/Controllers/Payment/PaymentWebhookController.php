@@ -33,6 +33,10 @@ class PaymentWebhookController extends Controller
 
         $type = $request->query('type') ?? $request->input('type');
 
+        // payment.created / payment.updated: solo para los logs; ambos se
+        // procesan igual, consultando el estado real en Mercado Pago.
+        $action = $request->input('action');
+
         try {
 
             $result = $this->webhookService->handle(
@@ -69,6 +73,7 @@ class PaymentWebhookController extends Controller
             // sin problema, la idempotencia sigue intacta.
             Log::warning('mercadopago.webhook.rate_limited', [
                 'data_id' => $dataId,
+                'action' => $action,
                 'message' => $e->getMessage(),
             ]);
 
@@ -85,6 +90,7 @@ class PaymentWebhookController extends Controller
             Log::warning('mercadopago.webhook.rejected', [
                 'message' => $e->getMessage(),
                 'data_id' => $dataId,
+                'action' => $action,
             ]);
 
             // El detalle (montos, ids de Order, configuración) queda solo
@@ -100,6 +106,7 @@ class PaymentWebhookController extends Controller
             Log::error('mercadopago.webhook.provider_error', [
                 'message' => $e->getMessage(),
                 'data_id' => $dataId,
+                'action' => $action,
             ]);
 
             return response()->json(['error' => 'temporary error'], 502);

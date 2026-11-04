@@ -37,11 +37,28 @@
                 {{ $order->statusLabel }}
             </span>
 
-            @if ($order->isPlaced)
+            @if ($order->status === 'payment-review')
+
+                <p class="mx-auto mt-3 max-w-md text-sm text-secondary">
+                    Recibimos tu pago. Estamos confirmando la disponibilidad de tus productos y te contactaremos en breve.
+                </p>
+
+            @elseif ($order->isPlaced)
 
                 <p class="mx-auto mt-3 max-w-md text-sm text-secondary">
                     Tu pago ya fue confirmado.
                 </p>
+
+            @elseif ($order->status === 'cancelled')
+
+                <p class="mx-auto mt-3 max-w-md text-sm text-secondary">
+                    El plazo para pagar este pedido venció. Si aún quieres los productos, agrégalos de nuevo al carrito.
+                </p>
+
+                <a href="{{ route('catalog.index') }}"
+                    class="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#f5a623] px-8 py-3.5 font-semibold text-neutral-950 transition hover:bg-amber-400">
+                    Ver productos
+                </a>
 
             @else
 

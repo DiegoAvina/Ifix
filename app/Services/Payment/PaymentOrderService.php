@@ -2,6 +2,7 @@
 
 namespace App\Services\Payment;
 
+use Carbon\CarbonInterface;
 use InvalidArgumentException;
 use Lunar\Models\Order;
 use Lunar\Models\ProductVariant;
@@ -34,6 +35,18 @@ class PaymentOrderService
     }
 
     /**
+     * Fecha límite para pagar la Order. Se cuenta desde que se creó, no
+     * desde que se abrió Mercado Pago, para que volver a pulsar "Pagar"
+     * no extienda el plazo.
+     */
+    public function paymentDeadline(Order $order): CarbonInterface
+    {
+        return $order->created_at->copy()->addHours(
+            (int) config('services.mercadopago.payment_hours')
+        );
+    }
+
+    /**
      * Valida que la Order esté en condiciones reales de recibir un pago.
      *
      * @throws InvalidArgumentException Con un mensaje en español listo
@@ -50,6 +63,12 @@ class PaymentOrderService
         if ($this->hasSuccessfulCapture($order)) {
             throw new InvalidArgumentException(
                 'Este pedido ya tiene un pago exitoso registrado.'
+            );
+        }
+
+        if ($order->status === 'cancelled' || $this->paymentDeadline($order)->isPast()) {
+            throw new InvalidArgumentException(
+                'El plazo para pagar este pedido venció. Vuelve a agregar los productos al carrito para hacer un pedido nuevo.'
             );
         }
 

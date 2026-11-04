@@ -39,7 +39,10 @@ class SecurityHeaders
         // No anunciar versión de PHP/servidor.
         $response->headers->remove('X-Powered-By');
         header_remove('X-Powered-By');
-        $response->headers->set('Content-Security-Policy', $this->buildCsp($nonce));
+        $response->headers->set('Content-Security-Policy', $this->buildCsp(
+            $nonce,
+            $request->is('lunar', 'lunar/*', 'admin', 'admin/*'),
+        ));
 
         // HSTS solo tiene sentido (y solo lo honran los navegadores) en
         // una respuesta servida realmente por HTTPS. En `php artisan
@@ -55,8 +58,16 @@ class SecurityHeaders
         return $response;
     }
 
-    protected function buildCsp(string $nonce): string
+    protected function buildCsp(string $nonce, bool $isPanel = false): string
     {
+        // Los paneles de Filament imprimen scripts inline sin nonce desde
+        // las vistas del vendor (menú lateral, tema, avisos); sin ellos el
+        // menú queda vacío. Solo en estas rutas, que requieren sesión, se
+        // permite 'unsafe-inline'. No lleva nonce porque el navegador
+        // ignora 'unsafe-inline' si hay uno. El storefront no cambia.
+        $scriptSource = $isPanel ? "'unsafe-inline'" : "'nonce-{$nonce}'";
+
+
         // Cuando `npm run dev` está corriendo, Laravel sirve CSS/JS
         // desde el servidor de Vite (otro origen, ej. http://[::1]:5173)
         // en vez de public/build — eso incluye su cliente de HMR y el
@@ -80,11 +91,12 @@ class SecurityHeaders
             // a un dominio atacante.
             "base-uri 'self'",
 
-            // Los <form> de la app solo envían a rutas propias (incluido
-            // el de "Pagar con Mercado Pago": hace POST a nuestra propia
-            // ruta, que redirige server-side al init_point; nunca se
-            // envía un <form> directamente a un dominio de Mercado Pago).
-            "form-action 'self'",
+            // Los <form> de la app solo envían a rutas propias. El de
+            // "Pagar con Mercado Pago" hace POST a nuestra ruta, que
+            // redirige al init_point; Chrome/Edge aplican form-action
+            // también a esa redirección, así que sin los dominios de
+            // Mercado Pago el navegador bloquea el pago y solo recarga.
+            "form-action 'self' https://*.mercadopago.com.mx https://*.mercadopago.com",
 
             // OBJETIVO PRINCIPAL de este hallazgo: nadie puede embeber
             // esta app en un <iframe>. Duplicado con X-Frame-Options
@@ -108,7 +120,7 @@ class SecurityHeaders
             // aquí: Tailwind ahora se compila localmente vía Vite/
             // PostCSS (ver tailwind.config.js) y no queda ningún
             // dominio externo en script-src.
-            "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval'".($viteDevOrigin ? " {$viteDevOrigin}" : ''),
+            "script-src 'self' {$scriptSource} 'unsafe-eval'".($viteDevOrigin ? " {$viteDevOrigin}" : ''),
 
             // Estilos: 'unsafe-inline' es necesario porque Filament/
             // Livewire (vendor, no controlamos su HTML) generan atributos
@@ -124,7 +136,11 @@ class SecurityHeaders
             // libre (URL) editables desde el panel admin, no de un
             // storage fijo; no hay una lista cerrada de dominios que
             // whitelistear hoy.
-            "img-src 'self' https: data:",
+            // En los paneles, blob: permite la vista previa de la imagen
+            // que se está subiendo (FilePond); ver también worker-src.
+            "img-src 'self' https: data:".($isPanel ? ' blob:' : ''),
+
+            ...($isPanel ? ["worker-src 'self' blob:"] : []),
 
             // El carrito/checkout solo hace fetch/XHR a rutas propias
             // (confirmado: no hay ninguna llamada Http:: saliente desde

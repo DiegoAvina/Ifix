@@ -35,5 +35,7 @@ class DatabaseSeeder extends Seeder
         if (! app()->environment('testing')) {
             $this->call(IfixCatalogSeeder::class);
         }
+
+        $this->call(IfixCategorySeeder::class);
     }
 }

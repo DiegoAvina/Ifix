@@ -9,8 +9,10 @@ use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Exceptions\InvalidWebhookSignatureException;
 use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Net\MPSearchRequest;
 use MercadoPago\Resources\Preference;
 use MercadoPago\Webhook\WebhookSignatureValidator;
+use RuntimeException;
 
 /**
  * Encapsula el SDK oficial de Mercado Pago (mercadopago/dx-php v3).
@@ -33,6 +35,9 @@ class MercadoPagoService
      */
     public const SIGNATURE_TOLERANCE_SECONDS = 300;
 
+    // Formato de fechas que pide la API (ISO 8601 con milisegundos y zona).
+    protected const DATE_FORMAT = 'Y-m-d\TH:i:s.vP';
+
     public function __construct()
     {
         MercadoPagoConfig::setAccessToken(
@@ -45,9 +50,30 @@ class MercadoPagoService
      */
     public function createPreference(PaymentData $data): Preference
     {
-        $client = new PreferenceClient();
+        return (new PreferenceClient())->create($this->preferencePayload($data));
+    }
 
-        return $client->create([
+    /**
+     * Cuerpo que se envía a POST /checkout/preferences.
+     *
+     * @return array<string, mixed>
+     */
+    public function preferencePayload(PaymentData $data): array
+    {
+        $successUrl = route('payments.mercadopago.success');
+
+        // Mercado Pago rechaza la preferencia completa si pedimos
+        // auto_return o damos una notification_url con una URL local
+        // (http://127.0.0.1...). En local se prueba con un túnel HTTPS.
+        $isPublicUrl = str_starts_with($successUrl, 'https://');
+
+        // Con credenciales de prueba el pagador debe ser la cuenta de prueba
+        // con la que se inicia sesión en Checkout Pro; si mandamos el correo
+        // real del cliente, Mercado Pago deshabilita el botón Pagar. Ahí se
+        // omite y el comprador de prueba introduce sus propios datos.
+        $sendPayer = $data->payerEmail && ! config('services.mercadopago.test_mode');
+
+        return [
             'items' => [[
                 'title' => $data->description,
                 'quantity' => 1,
@@ -55,7 +81,7 @@ class MercadoPagoService
                 'currency_id' => $data->currency,
             ]],
 
-            'payer' => $data->payerEmail ? [
+            'payer' => $sendPayer ? [
                 'email' => $data->payerEmail,
             ] : null,
 
@@ -64,22 +90,30 @@ class MercadoPagoService
             'external_reference' => $data->externalReference,
 
             'back_urls' => [
-                'success' => route('payments.mercadopago.success'),
+                'success' => $successUrl,
                 'failure' => route('payments.mercadopago.failure'),
                 'pending' => route('payments.mercadopago.pending'),
             ],
 
             // Redirige automáticamente de vuelta cuando el pago
             // queda aprobado, en vez de dejar al usuario en la
-            // pantalla de resultado de Mercado Pago.
-            'auto_return' => 'approved',
+            // pantalla de resultado de Mercado Pago. En local el
+            // cliente vuelve con el botón de Mercado Pago.
+            'auto_return' => $isPublicUrl ? 'approved' : null,
 
-            'notification_url' => route('payments.mercadopago.webhook'),
+            'notification_url' => $isPublicUrl ? route('payments.mercadopago.webhook') : null,
+
+            // Mismo plazo que la Order: el link de pago deja de aceptar
+            // pagos y las fichas de OXXO/SPEI vencen a la misma hora.
+            'expires' => true,
+            'expiration_date_from' => now()->format(self::DATE_FORMAT),
+            'expiration_date_to' => $data->expiresAt->format(self::DATE_FORMAT),
+            'date_of_expiration' => $data->expiresAt->format(self::DATE_FORMAT),
 
             // No forzamos payment_methods/installments: dejamos que
             // Mercado Pago ofrezca los métodos y meses sin intereses
             // ya habilitados para la cuenta del vendedor.
-        ]);
+        ];
     }
 
     /**
@@ -110,10 +144,32 @@ class MercadoPagoService
     }
 
     /**
+     * IDs de los pagos que Mercado Pago tiene para una external_reference
+     * (GET /v1/payments/search). Solo IDs: el estado se vuelve a leer con
+     * findPayment() al procesar cada uno.
+     *
+     * @return string[]
+     */
+    public function paymentIdsFor(string $externalReference): array
+    {
+        $search = (new PaymentClient())->search(new MPSearchRequest(50, 0, [
+            'external_reference' => $externalReference,
+            'sort' => 'date_created',
+            'criteria' => 'asc',
+        ]));
+
+        return collect($search->results ?? [])
+            ->map(fn ($payment) => (string) (is_array($payment) ? $payment['id'] : $payment->id))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
      * Verifica la autenticidad de una notificación de webhook.
      *
      * @throws InvalidWebhookSignatureException Si la firma no es válida.
-     * @throws InvalidArgumentException Si no hay webhook secret configurado.
+     * @throws RuntimeException Si no hay webhook secret configurado.
      */
     public function verifyWebhookSignature(
         ?string $xSignature,
@@ -121,6 +177,13 @@ class MercadoPagoService
         ?string $dataId
     ): void {
         $secret = (string) config('services.mercadopago.webhook_secret');
+
+        // Es un error de configuración nuestro, no un dato inválido: no
+        // debe acabar en el 200 de "rechazado" (InvalidArgumentException),
+        // porque Mercado Pago ya no reintentaría y el pago se perdería.
+        if ($secret === '') {
+            throw new RuntimeException('Falta MERCADOPAGO_WEBHOOK_SECRET: no se pueden verificar los avisos de pago.');
+        }
 
         WebhookSignatureValidator::validate(
             xSignature: $xSignature,

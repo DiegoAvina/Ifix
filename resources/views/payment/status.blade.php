@@ -19,7 +19,9 @@
         : ($tone === 'failure' ? 'No pudimos procesar tu pago' : 'Estamos verificando tu pago');
 
     $description = $isPaid
-        ? 'Ya registramos tu pago y tu pedido está en proceso.'
+        ? ($order->status === 'payment-review'
+            ? 'Ya registramos tu pago. Estamos confirmando la disponibilidad de tus productos y te contactaremos en breve.'
+            : 'Ya registramos tu pago y tu pedido está en proceso.')
         : ($tone === 'failure'
             ? 'Mercado Pago reportó un problema con este intento de pago. Puedes intentar de nuevo desde tu pedido.'
             : 'Esto puede tardar unos segundos mientras confirmamos tu pago con Mercado Pago (por ejemplo, si pagaste con OXXO o SPEI, puede tardar más). Refresca esta página en un momento.');

@@ -37,6 +37,7 @@ class PaymentService
             amount: $order->total->decimal(),
             currency: $order->currency_code,
             payerEmail: $order->billingAddress?->contact_email ?? $order->user?->email,
+            expiresAt: $this->orders->paymentDeadline($order),
         );
 
         return $this->mercadoPago->createPreference($data);
