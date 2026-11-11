@@ -421,7 +421,9 @@
                         @endif
 
                         <p class="mt-3 text-center text-[11px] leading-5 text-secondary">
-                            Al confirmar, tus datos se tratan conforme a nuestro
+                            Al confirmar, aceptas nuestros
+                            <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener" class="font-semibold text-primary underline underline-offset-2">términos de servicio</a>
+                            y tus datos se tratan conforme a nuestro
                             <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-semibold text-primary underline underline-offset-2">aviso de privacidad</a>.
                         </p>
 

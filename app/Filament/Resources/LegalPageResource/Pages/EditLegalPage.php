@@ -21,10 +21,10 @@ class EditLegalPage extends EditRecord
                 ->url(fn (): string => $this->record->url())
                 ->openUrlInNewTab(),
 
-            // El registro, el checkout y los correos enlazan al aviso de privacidad:
-            // se puede ocultar (Publicada), pero no borrar.
+            // El registro, el checkout, el footer y los correos enlazan al aviso de
+            // privacidad y a los términos: se pueden ocultar (Publicada), no borrar.
             Actions\DeleteAction::make()
-                ->hidden(fn (): bool => $this->record->slug === LegalPage::PRIVACY),
+                ->hidden(fn (): bool => $this->record->isFixed()),
         ];
     }
 }

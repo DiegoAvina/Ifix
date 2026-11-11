@@ -33,18 +33,18 @@ class LegalPageResource extends Resource
                 ->required()
                 ->maxLength(255),
 
-            // El aviso de privacidad tiene su propia dirección (/aviso-de-privacidad)
-            // y la usan el registro, el checkout y los correos: su slug no se cambia.
+            // El aviso de privacidad y los términos de servicio tienen dirección
+            // propia y los enlazan el registro, el checkout y el footer: su slug no se cambia.
             Forms\Components\TextInput::make('slug')
                 ->label('Dirección')
-                ->prefix(fn (?LegalPage $record): string => $record?->slug === LegalPage::PRIVACY ? url('/').'/' : url('/legal').'/')
+                ->prefix(fn (?LegalPage $record): string => $record?->isFixed() ? url('/').'/' : url('/legal').'/')
                 ->helperText('Solo minúsculas, números y guiones. Por ejemplo: terminos-y-condiciones.')
                 ->required()
                 ->maxLength(100)
                 ->regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')
                 ->unique(ignoreRecord: true)
-                ->disabled(fn (?LegalPage $record): bool => $record?->slug === LegalPage::PRIVACY)
-                ->dehydrated(fn (?LegalPage $record): bool => $record?->slug !== LegalPage::PRIVACY),
+                ->disabled(fn (?LegalPage $record): bool => (bool) $record?->isFixed())
+                ->dehydrated(fn (?LegalPage $record): bool => ! $record?->isFixed()),
 
             Forms\Components\RichEditor::make('content')
                 ->label('Contenido')

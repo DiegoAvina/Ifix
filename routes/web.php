@@ -50,6 +50,9 @@ Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])
 Route::get('/aviso-de-privacidad', [LegalPageController::class, 'privacy'])
     ->name('legal.privacy');
 
+Route::get('/terminos-de-servicio', [LegalPageController::class, 'terms'])
+    ->name('legal.terms');
+
 Route::get('/legal/{slug}', [LegalPageController::class, 'show'])
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
     ->name('legal.show');

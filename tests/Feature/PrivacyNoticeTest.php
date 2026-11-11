@@ -87,7 +87,7 @@ class PrivacyNoticeTest extends TestCase
     public function test_account_cannot_be_created_without_accepting_the_notice(): void
     {
         $this->post('/register', $this->registration())
-            ->assertSessionHasErrors(['privacy' => 'Para crear tu cuenta debes aceptar el aviso de privacidad.']);
+            ->assertSessionHasErrors(['privacy' => 'Para crear tu cuenta debes aceptar los términos de servicio y el aviso de privacidad.']);
 
         $this->assertGuest();
         $this->assertDatabaseMissing('users', ['email' => 'ana@ejemplo.test']);

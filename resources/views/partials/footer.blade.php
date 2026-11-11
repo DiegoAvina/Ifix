@@ -8,7 +8,7 @@
 @php
     $footerLinks = $footerLinks ?? [
         ['label' => 'Aviso de privacidad', 'url' => route('legal.privacy')],
-        ['label' => 'Términos de Servicio',   'url' => '#'],
+        ['label' => 'Términos de servicio',   'url' => route('legal.terms')],
         ['label' => 'Sostenibilidad',          'url' => '#'],
         ['label' => 'Carreras',                'url' => '#'],
     ];

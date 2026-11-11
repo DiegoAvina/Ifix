@@ -37,9 +37,11 @@
                 <input id="privacy" type="checkbox" name="privacy" value="1" required @checked(old('privacy'))
                     class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-[#bd7710] focus:ring-[#f5a623]">
                 <span>
-                    He leído y acepto el
-                    <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-bold text-[#bd7710] underline underline-offset-2 transition hover:text-[#f5a623]">aviso de privacidad</a>
-                    y el tratamiento de mis datos para crear mi cuenta y atender mis pedidos.
+                    He leído y acepto los
+                    <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener" class="font-bold text-[#bd7710] underline underline-offset-2 transition hover:text-[#f5a623]">términos de servicio</a>
+                    y el
+                    <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-bold text-[#bd7710] underline underline-offset-2 transition hover:text-[#f5a623]">aviso de privacidad</a>,
+                    incluido el tratamiento de mis datos para crear mi cuenta y atender mis pedidos.
                 </span>
             </label>
             <x-input-error :messages="$errors->get('privacy')" class="mt-2" />

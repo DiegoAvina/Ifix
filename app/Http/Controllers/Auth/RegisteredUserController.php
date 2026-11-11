@@ -64,7 +64,7 @@ class RegisteredUserController extends Controller
                 'accepted',
             ],
         ], [
-            'privacy.accepted' => 'Para crear tu cuenta debes aceptar el aviso de privacidad.',
+            'privacy.accepted' => 'Para crear tu cuenta debes aceptar los términos de servicio y el aviso de privacidad.',
         ]);
 
 

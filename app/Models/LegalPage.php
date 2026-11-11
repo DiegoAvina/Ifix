@@ -14,6 +14,23 @@ class LegalPage extends Model
 {
     public const PRIVACY = 'aviso-de-privacidad';
 
+    public const TERMS = 'terminos-de-servicio';
+
+    /**
+     * Páginas con dirección propia (/aviso-de-privacidad, /terminos-de-servicio)
+     * enlazadas desde el registro, el checkout, el footer y los correos: su
+     * dirección no se cambia y no se pueden borrar desde el panel.
+     */
+    public const FIXED = [
+        self::PRIVACY => 'legal.privacy',
+        self::TERMS => 'legal.terms',
+    ];
+
+    public function isFixed(): bool
+    {
+        return array_key_exists((string) $this->slug, self::FIXED);
+    }
+
     protected $fillable = [
         'slug',
         'title',
@@ -32,8 +49,8 @@ class LegalPage extends Model
 
     public function url(): string
     {
-        return $this->slug === self::PRIVACY
-            ? route('legal.privacy')
+        return $this->isFixed()
+            ? route(self::FIXED[$this->slug])
             : route('legal.show', $this->slug);
     }
 }
