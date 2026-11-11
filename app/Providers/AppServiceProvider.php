@@ -64,7 +64,12 @@ class AppServiceProvider extends ServiceProvider
                 'Ventas',
                 NavigationGroup::make()->label('Configuraciones')->collapsed(),
             ])
-        )->register();
+        )
+            // Botón "Aplicar envío gratis" en el detalle del pedido.
+            ->extensions([
+                \Lunar\Admin\Filament\Resources\OrderResource\Pages\ManageOrder::class => \App\Filament\Extensions\ManageOrderExtension::class,
+            ])
+            ->register();
     }
 
     /**

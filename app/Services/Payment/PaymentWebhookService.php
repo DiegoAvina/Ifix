@@ -65,6 +65,7 @@ class PaymentWebhookService
         protected PaymentConfirmationMailer $paymentConfirmationMailer,
         protected StaffOrderNotifier $staffOrderNotifier,
         protected OrderStockService $orderStock,
+        protected \App\Services\Order\FreeShippingService $freeShipping,
     ) {}
 
     public static function buildExternalReference(int $orderId): string
@@ -186,6 +187,13 @@ class PaymentWebhookService
                 return ['status' => 'already_captured', 'message' => "La Order #{$lockedOrder->id} ya tenía una captura exitosa."];
             }
 
+            if ($result->isApproved()) {
+                // Envío gratis aplicado o quitado desde el panel mientras el
+                // cliente tenía abierta la página de pago: el pedido se
+                // ajusta a lo que pagó (con o sin envío), sin reembolsos.
+                $this->freeShipping->settleToPaidAmount($lockedOrder, $result->amount);
+            }
+
             $this->recordTransaction($lockedOrder, $result);
 
             if ($result->isApproved()) {
@@ -268,7 +276,7 @@ class PaymentWebhookService
 
         $orderTotal = $order->total->decimal();
 
-        if (abs($orderTotal - $result->amount) > 0.01) {
+        if (abs($orderTotal - $result->amount) > 0.01 && ! $this->freeShipping->matchesAlternativeTotal($order, $result->amount)) {
             throw new InvalidArgumentException(
                 "Monto del pago ({$result->amount}) no coincide con el total de la Order #{$order->id} ({$orderTotal})."
             );
