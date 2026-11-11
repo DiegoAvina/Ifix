@@ -40,13 +40,41 @@
                 <p class="mt-1 text-sm font-semibold text-neutral-600 dark:text-neutral-400">Mis pedidos</p>
             </a>
 
-            <div class="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-white/10 dark:bg-[#17191b] sm:p-6">
-                <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                    <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
-                </span>
-                <p class="mt-4 text-lg font-extrabold">{{ $user->hasVerifiedEmail() ? 'Cuenta verificada' : 'Verifica tu correo' }}</p>
-                <p class="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{{ $user->email }}</p>
-            </div>
+            @if ($user->hasVerifiedEmail())
+                <div class="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-white/10 dark:bg-[#17191b] sm:p-6">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                        <span class="material-symbols-outlined" aria-hidden="true">verified_user</span>
+                    </span>
+                    <p class="mt-4 text-lg font-extrabold">Cuenta verificada</p>
+                    <p class="mt-1 text-sm text-neutral-600 dark:text-neutral-400">{{ $user->email }}</p>
+                </div>
+            @else
+                {{-- Sin verificar no puede comprar (el checkout exige correo verificado): se destaca en rojo. --}}
+                <div class="rounded-2xl border border-red-300 bg-red-50 p-5 dark:border-red-500/40 dark:bg-red-500/10 sm:p-6" role="alert">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-red-600 text-white">
+                        <span class="material-symbols-outlined" aria-hidden="true">mark_email_unread</span>
+                    </span>
+                    <p class="mt-4 text-lg font-extrabold text-red-700 dark:text-red-300">Verifica tu correo</p>
+                    <p class="mt-1 text-sm text-red-700/90 dark:text-red-200/90">
+                        Confirma <strong class="break-all">{{ $user->email }}</strong> para poder comprar.
+                    </p>
+
+                    @if (session('status') === 'verification-link-sent')
+                        <p class="mt-4 flex items-start gap-2 rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/30">
+                            <span class="material-symbols-outlined text-lg" aria-hidden="true">mark_email_read</span>
+                            Te enviamos un nuevo enlace. Revisa tu bandeja de entrada y la carpeta de spam.
+                        </p>
+                    @endif
+
+                    <form method="POST" action="{{ route('verification.send') }}" class="mt-4">
+                        @csrf
+                        <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 sm:w-auto">
+                            <span class="material-symbols-outlined text-lg" aria-hidden="true">send</span>
+                            {{ session('status') === 'verification-link-sent' ? 'Reenviar correo de verificación' : 'Verificar mi correo' }}
+                        </button>
+                    </form>
+                </div>
+            @endif
         </div>
 
         <div class="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
