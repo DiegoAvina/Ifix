@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @php
+    $category ??= null;
     $productSummary = \Illuminate\Support\Str::limit(
         trim(preg_replace('/\s+/', ' ', strip_tags((string) $product->description))),
         155,
@@ -31,6 +32,7 @@
                     'sku' => $product->inventory->sku,
                     'image' => collect($product->gallery)->pluck('url')->filter()->values()->all(),
                     'brand' => $product->brand->name ? ['@type' => 'Brand', 'name' => $product->brand->name] : null,
+                    'category' => $category ? 'Detallado automotriz > '.$category['name'] : 'Detallado automotriz',
                     'url' => $product->url,
                     'offers' => [
                         '@type' => 'Offer',
@@ -47,9 +49,12 @@
                 [
                     '@type' => 'BreadcrumbList',
                     'itemListElement' => [
-                        ['@type' => 'ListItem', 'position' => 1, 'name' => 'Inicio', 'item' => route('home')],
-                        ['@type' => 'ListItem', 'position' => 2, 'name' => 'Catálogo', 'item' => route('catalog.index')],
-                        ['@type' => 'ListItem', 'position' => 3, 'name' => $product->name, 'item' => $product->url],
+                        ...collect(array_filter([
+                            ['name' => 'Inicio', 'item' => route('home')],
+                            ['name' => 'Productos', 'item' => route('catalog.index')],
+                            $category ? ['name' => $category['name'], 'item' => $category['url']] : null,
+                            ['name' => $product->name, 'item' => $product->url],
+                        ]))->values()->map(fn ($crumb, $i) => ['@type' => 'ListItem', 'position' => $i + 1] + $crumb)->all(),
                     ],
                 ],
             ],
@@ -83,8 +88,11 @@
                     Inicio
                 </a>
                 <span class="material-symbols-outlined text-sm text-neutral-400" aria-hidden="true">chevron_right</span>
-                <a href="{{ route('catalog.index') }}" class="transition hover:text-[#bd7710]">Catálogo</a>
-                @if ($product->brand->id)
+                <a href="{{ route('catalog.index') }}" class="transition hover:text-[#bd7710]">Productos</a>
+                @if ($category)
+                    <span class="material-symbols-outlined text-sm text-neutral-400" aria-hidden="true">chevron_right</span>
+                    <a href="{{ $category['url'] }}" class="transition hover:text-[#bd7710]">{{ $category['name'] }}</a>
+                @elseif ($product->brand->id)
                     <span class="material-symbols-outlined text-sm text-neutral-400" aria-hidden="true">chevron_right</span>
                     <a href="{{ route('catalog.index', ['brand' => [$product->brand->id]]) }}" class="transition hover:text-[#bd7710]">
                         {{ $product->brand->name }}

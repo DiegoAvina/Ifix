@@ -10,6 +10,13 @@
         <changefreq>daily</changefreq>
         <priority>0.9</priority>
     </url>
+@foreach ($categories as $category)
+    <url>
+        <loc>{{ $category['url'] }}</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.9</priority>
+    </url>
+@endforeach
 @foreach ($products as $product)
     <url>
         <loc>{{ route('catalog.show', $product->defaultUrl?->slug ?? $product->id) }}</loc>
@@ -21,6 +28,14 @@
             <image:loc>{{ $media->getUrl() }}</image:loc>
         </image:image>
 @endforeach
+    </url>
+@endforeach
+@foreach ($legalPages as $page)
+    <url>
+        <loc>{{ $page->url() }}</loc>
+        <lastmod>{{ $page->updated_at?->toAtomString() }}</lastmod>
+        <changefreq>yearly</changefreq>
+        <priority>0.2</priority>
     </url>
 @endforeach
 </urlset>

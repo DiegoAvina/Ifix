@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LegalPage;
+use App\Services\Storefront\CategoryService;
 use App\Services\Storefront\StorefrontAvailabilityQuery;
 use Illuminate\Http\Response;
 use Lunar\Models\Product;
@@ -34,7 +36,7 @@ class SeoController extends Controller
         return response(implode("\n", $lines)."\n", 200, ['Content-Type' => 'text/plain; charset=UTF-8']);
     }
 
-    public function sitemap(StorefrontAvailabilityQuery $availability): Response
+    public function sitemap(StorefrontAvailabilityQuery $availability, CategoryService $categories): Response
     {
         $products = $availability
             ->apply(Product::query()->where('status', 'published'))
@@ -42,7 +44,11 @@ class SeoController extends Controller
             ->get();
 
         return response()
-            ->view('seo.sitemap', ['products' => $products])
+            ->view('seo.sitemap', [
+                'products' => $products,
+                'categories' => array_filter($categories->all(), fn (array $category) => $category['slug']),
+                'legalPages' => LegalPage::query()->published()->get(),
+            ])
             ->header('Content-Type', 'application/xml; charset=UTF-8');
     }
 }

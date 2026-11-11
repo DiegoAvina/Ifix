@@ -86,12 +86,11 @@ class ProductCategoriesTest extends TestCase
 
         $this->assertNotContains('Limpieza', array_column(app(CollectionService::class)->all(), 'name'));
 
-        $url = e($this->category('Limpieza')->id);
-
+        // Enlazan a la página indexable de la categoría, no al filtro.
         $this->get('/')
             ->assertOk()
             ->assertSee('Limpieza')
-            ->assertSee('collection%5B0%5D='.$url, false)
+            ->assertSee('href="'.route('catalog.category', 'limpieza').'"', false)
             ->assertDontSee('Accesorios y kits');
     }
 
@@ -105,6 +104,9 @@ class ProductCategoriesTest extends TestCase
         $pulimentos = $this->category('Pulimentos')->id;
 
         $this->get(route('catalog.index', ['collection' => [$limpieza]]))
+            ->assertRedirect(route('catalog.category', 'limpieza'));
+
+        $this->get(route('catalog.category', 'limpieza'))
             ->assertOk()
             ->assertSee($cleanerName)
             ->assertDontSee($polishName);

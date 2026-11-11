@@ -12,7 +12,7 @@
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0&display=block" rel="stylesheet">
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="auth-shell min-h-screen bg-[#111315] font-sans text-white antialiased transition-colors">

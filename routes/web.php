@@ -64,6 +64,12 @@ Route::get('/productos', [CatalogController::class, 'index'])
     ->name('catalog.index');
 
 
+Route::get('/categorias/{slug}', [CatalogController::class, 'category'])
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->middleware(NormalizeCatalogQuery::class)
+    ->name('catalog.category');
+
+
 Route::get('/productos/{product}', ProductController::class)
     ->name('catalog.show');
 

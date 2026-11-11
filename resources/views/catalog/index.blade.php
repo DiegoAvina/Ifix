@@ -3,12 +3,37 @@
 @php
     $catalogPage = max(1, (int) request('page', 1));
     // Búsquedas, filtros y orden generan variantes del mismo listado.
-    $catalogIsFiltered = collect(request()->query())->except('page')->filter(fn ($value) => filled($value))->isNotEmpty();
+    // En una página de categoría, la categoría la fija la ruta: no cuenta como filtro.
+    $catalogIsFiltered = collect(request()->query())
+        ->except($category ? ['page', 'collection'] : ['page'])
+        ->filter(fn ($value) => filled($value))
+        ->isNotEmpty();
+    $pageSuffix = $catalogPage > 1 ? " | Página {$catalogPage}" : '';
+
+    if ($category) {
+        $catalogTitle = $category['title'].$pageSuffix.' | IFIX';
+        $catalogDescription = $category['description'];
+        $catalogCanonical = route('catalog.category', array_filter([$category['slug'], 'page' => $catalogPage > 1 ? $catalogPage : null]));
+        $catalogHeading = $category['name'];
+        $catalogIntro = $category['intro'];
+    } else {
+        $catalogTitle = 'Productos para detallado automotriz: ceras, pulimentos y más'.$pageSuffix.' | IFIX';
+        $catalogDescription = 'Catálogo completo IFIX de productos para detallado automotriz: shampoo para auto, pulimentos de corte alto y medio, ceras de grafeno, recubrimientos cerámicos y restauradores de plásticos y llantas. Envíos a todo México.';
+        $catalogCanonical = $catalogPage > 1 ? route('catalog.index', ['page' => $catalogPage]) : route('catalog.index');
+        $catalogHeading = 'Productos para detallado automotriz';
+        $catalogIntro = 'Química automotriz profesional para lavar, descontaminar, pulir, proteger y restaurar tu auto: shampoo, pulimentos, ceras, recubrimientos cerámicos y restauradores IFIX.';
+    }
+
+    $breadcrumbs = array_values(array_filter([
+        ['name' => 'Inicio', 'item' => route('home')],
+        ['name' => 'Productos', 'item' => route('catalog.index')],
+        $category ? ['name' => $category['name'], 'item' => route('catalog.category', $category['slug'])] : null,
+    ]));
 @endphp
 
-@section('title', 'Catálogo de productos para detallado automotriz'.($catalogPage > 1 ? " | Página {$catalogPage}" : '').' | IFIX')
-@section('meta_description', 'Catálogo completo IFIX: limpiadores, shampoo, pulimentos de corte alto y medio, abrillantadores, ceras, recubrimientos cerámicos y acondicionadores de plásticos y llantas.')
-@section('canonical', $catalogPage > 1 ? route('catalog.index', ['page' => $catalogPage]) : route('catalog.index'))
+@section('title', $catalogTitle)
+@section('meta_description', $catalogDescription)
+@section('canonical', $catalogCanonical)
 
 @if ($catalogIsFiltered)
     @section('meta_robots', 'noindex, follow')
@@ -18,10 +43,28 @@
     <script type="application/ld+json" nonce="{{ $cspNonce }}">
         {!! json_encode([
             '@context' => 'https://schema.org',
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => [
-                ['@type' => 'ListItem', 'position' => 1, 'name' => 'Inicio', 'item' => route('home')],
-                ['@type' => 'ListItem', 'position' => 2, 'name' => 'Catálogo', 'item' => route('catalog.index')],
+            '@graph' => [
+                [
+                    '@type' => 'BreadcrumbList',
+                    'itemListElement' => collect($breadcrumbs)->map(fn ($crumb, $i) => ['@type' => 'ListItem', 'position' => $i + 1] + $crumb)->all(),
+                ],
+                [
+                    '@type' => 'CollectionPage',
+                    'name' => $catalogHeading,
+                    'description' => $catalogDescription,
+                    'url' => $catalogCanonical,
+                    'inLanguage' => 'es-MX',
+                    'mainEntity' => [
+                        '@type' => 'ItemList',
+                        'numberOfItems' => $catalog->products->paginator->total(),
+                        'itemListElement' => collect($catalog->products->items)->values()->map(fn ($product, $i) => [
+                            '@type' => 'ListItem',
+                            'position' => ($catalog->products->paginator->firstItem() ?? 1) + $i,
+                            'url' => $product->url,
+                            'name' => $product->name,
+                        ])->all(),
+                    ],
+                ],
             ],
         ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
@@ -54,7 +97,13 @@
                         Inicio
                     </a>
                     <span class="material-symbols-outlined text-sm text-neutral-400" aria-hidden="true">chevron_right</span>
-                    <span class="font-semibold text-neutral-900">Todos los productos</span>
+                    @if ($category)
+                        <a href="{{ route('catalog.index') }}" class="transition hover:text-[#bd7710]">Productos</a>
+                        <span class="material-symbols-outlined text-sm text-neutral-400" aria-hidden="true">chevron_right</span>
+                        <span class="font-semibold text-neutral-900" aria-current="page">{{ $category['name'] }}</span>
+                    @else
+                        <span class="font-semibold text-neutral-900" aria-current="page">Todos los productos</span>
+                    @endif
                 </nav>
 
                 <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -64,33 +113,37 @@
                             Catálogo profesional IFIX
                         </span>
                         <h1 class="mt-3 font-heading text-3xl font-extrabold tracking-tight text-neutral-950 sm:text-4xl">
-                            Catálogo General de Productos
+                            {{ $catalogHeading }}
                         </h1>
                         <p class="mt-2 max-w-2xl text-sm leading-6 text-neutral-600 sm:text-base">
-                            Soluciones profesionales de química automotriz: nanotecnología SiO₂, abrillantadores y pulimentos para acabados impecables.
+                            {{ $catalogIntro }}
                         </p>
                     </div>
 
                     @php
-                        $collectionFilter = collect($catalog->filters)->firstWhere('key', 'collection');
+                        $selectedCollections = array_map('strval', (array) request('collection', []));
+                        $onlyOneCategory = $category || count($selectedCollections) === 1;
                     @endphp
-                    <nav class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" aria-label="Filtrar por colección">
-                        <a href="{{ route('catalog.index', request()->except('collection', 'page')) }}"
+                    {{-- Enlaces a las páginas de categoría (no a filtros): así Google las rastrea. --}}
+                    <nav class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" aria-label="Categorías">
+                        <a href="{{ route('catalog.index', $category ? [] : request()->except('collection', 'page')) }}"
                             @class([
                                 'shrink-0 rounded-full px-4 py-2 text-xs font-bold transition sm:text-sm',
-                                'bg-neutral-950 text-white' => !request()->has('collection'),
-                                'bg-neutral-100 text-neutral-800 hover:bg-neutral-200' => request()->has('collection'),
+                                'bg-neutral-950 text-white' => ! $selectedCollections,
+                                'bg-neutral-100 text-neutral-800 hover:bg-neutral-200' => $selectedCollections,
                             ])>
-                            Todos ({{ $catalog->products->paginator->total() }})
+                            Todos
                         </a>
-                        @foreach ($collectionFilter?->options ?? [] as $option)
-                            <a href="{{ $option->url }}"
+                        @foreach ($categories as $chip)
+                            @php $chipSelected = $onlyOneCategory && in_array((string) $chip['id'], $selectedCollections, true); @endphp
+                            <a href="{{ $chip['url'] }}"
+                                @if ($chipSelected) aria-current="page" @endif
                                 @class([
                                     'shrink-0 rounded-full px-4 py-2 text-xs font-bold transition sm:text-sm',
-                                    'bg-neutral-950 text-white' => $option->selected,
-                                    'bg-neutral-100 text-neutral-800 hover:bg-neutral-200' => !$option->selected,
+                                    'bg-neutral-950 text-white' => $chipSelected,
+                                    'bg-neutral-100 text-neutral-800 hover:bg-neutral-200' => ! $chipSelected,
                                 ])>
-                                {{ $option->label }} ({{ $option->count }})
+                                {{ $chip['name'] }} ({{ $chip['count'] }})
                             </a>
                         @endforeach
                     </nav>

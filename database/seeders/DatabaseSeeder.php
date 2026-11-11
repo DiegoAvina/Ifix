@@ -38,5 +38,9 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(IfixCategorySeeder::class);
+
+        // Los seeders corren sin eventos de modelo, así que Lunar no crea los
+        // slugs de productos y categorías: se generan aquí.
+        \Illuminate\Support\Facades\Artisan::call('seo:generate-urls');
     }
 }

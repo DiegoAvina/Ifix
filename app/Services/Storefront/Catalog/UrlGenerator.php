@@ -45,6 +45,8 @@ class UrlGenerator
             $query[$filter] = $values;
         }
 
-        return url()->current() . (empty($query) ? '' : '?' . http_build_query($query));
+        // Siempre al catálogo general: en /categorias/{slug} la categoría va
+        // fija en la ruta, así que combinar filtros se hace en /productos.
+        return route('catalog.index') . (empty($query) ? '' : '?' . http_build_query($query));
     }
 }

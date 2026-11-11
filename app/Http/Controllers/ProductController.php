@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Storefront\CategoryService;
 use App\Services\Storefront\ProductService;
 use App\Services\Storefront\StorefrontAvailabilityQuery;
 use Lunar\Models\Product;
@@ -11,6 +12,7 @@ class ProductController extends Controller
     public function __invoke(
         ProductService $products,
         StorefrontAvailabilityQuery $availability,
+        CategoryService $categories,
         Product $product,
     ) {
         abort_unless(
@@ -35,11 +37,20 @@ class ProductController extends Controller
             'defaultUrl',
         ]);
 
+        // Primera categoría visible del producto, para la ruta de navegación.
+        $visibleCategories = collect($categories->all())->keyBy('id');
+        $category = $product->collections
+            ->sortBy('id')
+            ->map(fn ($collection) => $visibleCategories->get($collection->id))
+            ->filter()
+            ->first();
+
         return view('products.show', [
             'product' => $products->map(
                 $product,
                 $products->related($product)
             ),
+            'category' => $category,
         ]);
     }
 }

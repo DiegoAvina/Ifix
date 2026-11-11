@@ -31,6 +31,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // X-Forwarded-*, Laravel cree que la petición es http:// y los
         // enlaces firmados (verificación de correo) dan "Invalid signature".
         // Solo se confía en proxies conocidos (por defecto, la propia máquina).
+        // Solo se aceptan peticiones dirigidas al dominio de APP_URL (y sus
+        // subdominios, p. ej. www). Sin esto, alguien puede mandar otro Host
+        // y los correos de recuperar contraseña o verificación apuntarían a
+        // su sitio. Laravel no lo aplica en APP_ENV=local ni en las pruebas.
+        $middleware->trustHosts();
+
         $middleware->trustProxies(
             at: array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', '127.0.0.1,::1')))),
         );

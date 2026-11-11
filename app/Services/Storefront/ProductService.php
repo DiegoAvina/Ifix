@@ -117,9 +117,11 @@ class ProductService
      */
     public function all(Builder $query): ProductCollectionData
     {
+        // Los filtros que fija la ruta (p. ej. la categoría en /categorias/{slug})
+        // no se repiten en los enlaces de página: /categorias/limpieza?page=2.
         $paginator = $query
             ->paginate(12)
-            ->withQueryString();
+            ->appends(request()->except(request()->attributes->get('catalog_fixed_query', [])));
 
         return new ProductCollectionData(
             items: $paginator
