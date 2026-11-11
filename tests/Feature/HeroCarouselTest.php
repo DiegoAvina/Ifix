@@ -128,7 +128,7 @@ class HeroCarouselTest extends TestCase
         $this->actingAs($staff, 'staff')
             ->get('/lunar/hero-slides')
             ->assertOk()
-            ->assertSee('Hero Slides');
+            ->assertSee('Banners del inicio');
     }
 
     public function test_panel_form_stores_mexico_time_as_utc_and_validates_dates(): void

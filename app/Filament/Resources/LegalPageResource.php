@@ -20,6 +20,10 @@ class LegalPageResource extends Resource
 
     protected static ?string $navigationLabel = 'Páginas legales';
 
+    protected static ?string $navigationGroup = 'Tienda en línea';
+
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $modelLabel = 'página legal';
 
     protected static ?string $pluralModelLabel = 'Páginas legales';

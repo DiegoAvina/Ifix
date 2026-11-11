@@ -4,12 +4,15 @@ namespace App\Providers;
 
 use App\Filament\Resources\HeroSlideResource;
 use App\Filament\Resources\LegalPageResource;
+use App\Http\Middleware\SetPanelLocale;
 use App\PaymentTypes\MercadoPagoPayment;
 use App\Services\Lunar\SafeTelemetryService;
 use App\Services\Shipping\StandardShippingModifier;
 use App\Services\Storefront\CategoryService;
 use App\Services\Storefront\Search\FuzzyProductMatcher;
+use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
+use Filament\Support\Colors\Color;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -34,10 +37,29 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        LunarPanel::panel(fn (Panel $panel) => $panel->resources([
-            HeroSlideResource::class,
-            LegalPageResource::class,
-        ]))->register();
+        LunarPanel::panel(fn (Panel $panel) => $panel
+            ->resources([
+                HeroSlideResource::class,
+                LegalPageResource::class,
+            ])
+            // Marca IFIX en lugar de la de Lunar (licencia MIT: se permite).
+            ->brandName('IFIX')
+            ->brandLogo(fn () => asset('images/ifix-logo-dark.svg'))
+            ->darkModeBrandLogo(fn () => asset('images/ifix-logo.svg'))
+            ->brandLogoHeight('2.25rem')
+            ->favicon(fn () => asset('favicon.svg'))
+            ->colors(['primary' => Color::Amber])
+            // Español en todo el panel. Persistente: también aplica a las
+            // peticiones internas de Livewire (filtros, formularios, modales).
+            ->middleware([SetPanelLocale::class], isPersistent: true)
+            // Orden del menú con los nombres traducidos de Lunar.
+            ->navigationGroups([
+                'Tienda en línea',
+                'Catálogo',
+                'Ventas',
+                NavigationGroup::make()->label('Configuraciones')->collapsed(),
+            ])
+        )->register();
     }
 
     /**

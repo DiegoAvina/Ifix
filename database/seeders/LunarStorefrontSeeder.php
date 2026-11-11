@@ -95,6 +95,16 @@ class LunarStorefrontSeeder extends Seeder
             ProductType::query()->create(['name' => 'Productos iFix']);
         }
 
+        // Nombre y descripción (creados por la migración de atributos) en el
+        // formulario de producto del panel. No duplica si ya están.
+        $productAttributes = \Lunar\Models\Attribute::query()
+            ->where('attribute_type', Product::morphName())
+            ->pluck('id');
+
+        ProductType::query()->each(
+            fn (ProductType $type) => $type->mappedAttributes()->syncWithoutDetaching($productAttributes)
+        );
+
         Brand::query()->firstOrCreate(['name' => 'IFIX']);
     }
 }

@@ -27,13 +27,16 @@ html.light body {
 
 html.dark .bg-white,
 html.dark .bg-gray-50,
-html.dark .bg-neutral-50 {
+html.dark .bg-neutral-50,
+html.dark [class~="sm:bg-white"],
+html.dark [class~="sm:bg-neutral-50"] {
     background-color: #17191b !important;
 }
 
 html.dark .bg-gray-100,
 html.dark .bg-neutral-100,
-html.dark .bg-slate-100 {
+html.dark .bg-slate-100,
+html.dark [class~="sm:bg-neutral-100"] {
     background-color: #222528 !important;
 }
 
@@ -89,7 +92,8 @@ html.dark .border-gray-200,
 html.dark .border-gray-300,
 html.dark .border-neutral-100,
 html.dark .border-neutral-200,
-html.dark .border-slate-200 {
+html.dark .border-slate-200,
+html.dark [class~="sm:border-neutral-200"] {
     border-color: #34383c !important;
 }
 

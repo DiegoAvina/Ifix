@@ -13,7 +13,8 @@
 @endphp
 
 <article class="group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:-translate-y-1 hover:border-neutral-300 hover:shadow-xl hover:shadow-neutral-900/10">
-    <a href="{{ $detailUrl }}" class="relative flex aspect-square items-center justify-center overflow-hidden bg-[#f4f4f2] p-5 sm:p-7">
+    {{-- En el celular la foto ocupa toda la tarjeta; desde sm, con aire alrededor. --}}
+    <a href="{{ $detailUrl }}" class="relative flex aspect-square items-center justify-center overflow-hidden bg-[#f4f4f2] sm:p-7">
         @foreach ($product->badges as $badge)
             @if ($badge->label !== 'Disponible')
                 <span class="absolute left-3 top-3 z-10 rounded-full bg-[#f5a623] px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wide text-neutral-950 sm:left-4 sm:top-4 sm:px-3 sm:text-[10px]">
@@ -23,7 +24,7 @@
             @endif
         @endforeach
         <img src="{{ $image }}" alt="{{ $imageAlt }}" loading="lazy" data-product-image
-            class="h-full w-full object-contain transition duration-500 group-hover:scale-105">
+            class="h-full w-full object-cover transition duration-500 group-hover:scale-105 sm:object-contain">
     </a>
 
     <div class="flex flex-1 flex-col p-3 sm:p-4">
@@ -31,17 +32,19 @@
             <p class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#bd7710] sm:text-[11px]">{{ $brand }}</p>
         @endif
 
-        <a href="{{ $detailUrl }}" class="mt-1.5">
-            <h3 class="line-clamp-2 min-h-10 text-xs font-bold leading-snug text-neutral-900 transition group-hover:text-[#bd7710] sm:min-h-11 sm:text-sm">
+        {{-- Alto exacto de 2 líneas (leading-snug = 1.375): con un mínimo mayor asomaba media tercera línea. --}}
+        <a href="{{ $detailUrl }}" class="mt-1">
+            <h3 class="line-clamp-2 min-h-[2.75em] text-[13px] font-bold leading-snug text-neutral-900 transition group-hover:text-[#bd7710] sm:text-sm">
                 {{ $name }}
             </h3>
         </a>
 
+        {{-- El SKU no le dice nada al comprador en el celular. --}}
         @if ($inventory->sku)
-            <p class="mt-1.5 text-[9px] uppercase tracking-wide text-neutral-400 sm:text-[10px]">SKU: {{ $inventory->sku }}</p>
+            <p class="mt-1.5 hidden text-[10px] uppercase tracking-wide text-neutral-400 sm:block">SKU: {{ $inventory->sku }}</p>
         @endif
 
-        <div class="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <div class="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 sm:mt-3">
             <p class="text-lg font-extrabold tabular-nums text-neutral-950 sm:text-xl">{{ $product->price->formatted }}</p>
             @if ($product->price->compareFormatted)
                 <p class="text-xs tabular-nums text-neutral-500 sm:text-sm">
@@ -52,7 +55,7 @@
             @endif
         </div>
 
-        <div class="mt-auto pt-4">
+        <div class="mt-auto pt-3 sm:pt-4">
             @if ($available && $variantId)
                 <button
                     type="button"
