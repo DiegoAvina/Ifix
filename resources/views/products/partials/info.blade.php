@@ -212,6 +212,13 @@ console.log(
 
             );
 
+            window.ifixCartAdded({
+                sourceImage: document.querySelector("[data-product-main-image]"),
+                {{-- x-data va entre comillas simples: sin comillas ni < > & sueltos. --}}
+                name: {!! json_encode($product->name, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!},
+                quantity: this.qty,
+            });
+
 
             /*
             |--------------------------------------------------------------------------

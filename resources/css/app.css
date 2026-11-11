@@ -263,3 +263,54 @@ html.dark .order-confirmation [class*="divide-outline-variant"] > :not([hidden])
 html.dark .order-confirmation .text-primary {
     color: #f5a623 !important;
 }
+
+/*
+ * Carrusel del hero (partials/hero.blade.php + app.js). Solo cuando Swiper
+ * ya arrancó (.swiper-initialized): si el JS falla, el texto se ve normal.
+ * Al entrar cada oferta, el texto sube escalonado y la foto se acerca.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    [data-hero-carousel].swiper-initialized .swiper-slide [data-hero-reveal] {
+        opacity: 0;
+    }
+
+    [data-hero-carousel].swiper-initialized .swiper-slide-active [data-hero-reveal] {
+        animation: hero-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms) both;
+    }
+
+    [data-hero-carousel].swiper-initialized .swiper-slide-active .hero-image {
+        animation: hero-zoom 7s ease-out both;
+    }
+}
+
+@keyframes hero-reveal {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes hero-zoom {
+    from { transform: scale(1.08); }
+    to { transform: scale(1); }
+}
+
+/* Barra del aviso "Agregado al carrito": se vacía en lo que dura el aviso. */
+@media (prefers-reduced-motion: no-preference) {
+    .cart-toast-timer {
+        animation: cart-toast-timer 4.5s linear forwards;
+    }
+}
+
+@keyframes cart-toast-timer {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+/* Anillo de tiempo del botón "siguiente": se llena de 0 a 100. */
+.hero-next-ring circle {
+    stroke-dasharray: 100;
+    stroke-dashoffset: calc(100 - var(--hero-progress, 0) * 100);
+}
+
+.group:hover .hero-next-ring {
+    opacity: 0;
+}

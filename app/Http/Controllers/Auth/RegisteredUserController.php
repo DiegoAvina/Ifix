@@ -58,6 +58,13 @@ class RegisteredUserController extends Controller
                 'confirmed',
                 Rules\Password::defaults(),
             ],
+
+            // Aceptar el aviso de privacidad es obligatorio para crear la cuenta.
+            'privacy' => [
+                'accepted',
+            ],
+        ], [
+            'privacy.accepted' => 'Para crear tu cuenta debes aceptar el aviso de privacidad.',
         ]);
 
 
@@ -74,6 +81,9 @@ class RegisteredUserController extends Controller
                 $validated['password']
             ),
         ]);
+
+        // Fuera de $fillable a propósito: solo este flujo registra la aceptación.
+        $user->forceFill(['privacy_accepted_at' => now()])->save();
 
 
         /*

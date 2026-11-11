@@ -232,6 +232,10 @@
                             <button type="submit" class="w-full rounded-xl bg-primary px-6 py-3.5 font-semibold text-on-primary transition hover:brightness-110 sm:w-auto">
                                 Guardar y usar esta dirección
                             </button>
+                            <p class="mt-3 text-xs leading-5 text-secondary">
+                                Usamos tu dirección, teléfono y correo solo para entregar y facturar tu pedido, como explica nuestro
+                                <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-semibold text-primary underline underline-offset-2">aviso de privacidad</a>.
+                            </p>
                         </div>
 
                     </form>
@@ -415,6 +419,11 @@
                                 Selecciona una dirección de envío y de facturación para continuar.
                             </p>
                         @endif
+
+                        <p class="mt-3 text-center text-[11px] leading-5 text-secondary">
+                            Al confirmar, tus datos se tratan conforme a nuestro
+                            <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener" class="font-semibold text-primary underline underline-offset-2">aviso de privacidad</a>.
+                        </p>
 
                     </div>
 

@@ -17,89 +17,52 @@
     {{-- PASOS DEL PROCESO --}}
     {{-- ========================================================= --}}
 
+    @php
+        $checkoutSteps = ['Carrito de compras', 'Elegir dirección', 'Envío y pago', 'Confirmar pedido'];
+    @endphp
+
     <div class="border-b border-neutral-200 bg-white">
-        <div class="mx-auto max-w-7xl px-6 py-8">
+        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:py-8">
 
-            <div class="flex items-center justify-center overflow-x-auto">
-
-                {{-- Paso 1 --}}
-                <div class="flex items-center">
-
-                    <div class="flex items-center gap-3">
-
-                        <span
-                            class="flex h-9 w-9 items-center justify-center rounded-full bg-[#f5a623] text-sm font-extrabold text-neutral-950">
-                            1
-                        </span>
-
-                        <span class="whitespace-nowrap text-xs font-bold text-neutral-950 sm:text-sm">
-                            Carrito de compras
-                        </span>
-
-                    </div>
-
-                    <div class="mx-3 h-px w-8 bg-neutral-200 sm:mx-6 sm:w-20"></div>
-
+            {{-- Móvil y tablet: los 4 pasos no caben en una línea; se muestra el actual y una barra de avance. --}}
+            <div class="lg:hidden">
+                <div class="flex items-center justify-between gap-3 text-xs">
+                    <p class="font-bold text-neutral-950">
+                        <span class="text-[#bd7710]">Paso 1 de {{ count($checkoutSteps) }}</span>
+                        <span aria-hidden="true">·</span>
+                        {{ $checkoutSteps[0] }}
+                    </p>
+                    <p class="hidden text-neutral-500 sm:block">Sigue: {{ $checkoutSteps[1] }}</p>
                 </div>
-
-
-                {{-- Paso 2 --}}
-                <div class="flex items-center">
-
-                    <div class="flex items-center gap-3">
-
-                        <span
-                            class="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-sm font-semibold text-neutral-500">
-                            2
-                        </span>
-
-                        <span class="hidden whitespace-nowrap text-xs font-medium text-neutral-400 sm:inline sm:text-sm">
-                            Elegir dirección
-                        </span>
-
-                    </div>
-
-                    <div class="mx-3 h-px w-8 bg-neutral-200 sm:mx-6 sm:w-20"></div>
-
+                <div class="mt-2.5 grid gap-1.5" style="grid-template-columns: repeat({{ count($checkoutSteps) }}, minmax(0, 1fr));" aria-hidden="true">
+                    @foreach ($checkoutSteps as $step)
+                        <span @class(['h-1.5 rounded-full', 'bg-[#f5a623]' => $loop->first, 'bg-neutral-100' => ! $loop->first])></span>
+                    @endforeach
                 </div>
-
-
-                {{-- Paso 3 --}}
-                <div class="flex items-center">
-
-                    <div class="flex items-center gap-3">
-
-                        <span
-                            class="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-sm font-semibold text-neutral-500">
-                            3
-                        </span>
-
-                        <span class="hidden whitespace-nowrap text-xs font-medium text-neutral-400 sm:inline sm:text-sm">
-                            Envío y pago
-                        </span>
-
-                    </div>
-
-                    <div class="mx-3 h-px w-8 bg-neutral-200 sm:mx-6 sm:w-20"></div>
-
-                </div>
-
-
-                {{-- Paso 4 --}}
-                <div class="flex items-center gap-3">
-
-                    <span
-                        class="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-100 text-sm font-semibold text-neutral-500">
-                        4
-                    </span>
-
-                    <span class="hidden whitespace-nowrap text-xs font-medium text-neutral-400 sm:inline sm:text-sm">
-                        Confirmar pedido
-                    </span>
-
-                </div>
-
             </div>
+
+            {{-- Escritorio: los 4 pasos completos. --}}
+            <ol class="hidden items-center justify-center lg:flex" aria-label="Pasos de la compra">
+                @foreach ($checkoutSteps as $step)
+                    <li class="flex items-center" @if ($loop->first) aria-current="step" @endif>
+                        <div class="flex items-center gap-3">
+                            <span @class([
+                                'flex h-9 w-9 items-center justify-center rounded-full text-sm',
+                                'bg-[#f5a623] font-extrabold text-neutral-950' => $loop->first,
+                                'bg-neutral-100 font-semibold text-neutral-500' => ! $loop->first,
+                            ])>{{ $loop->iteration }}</span>
+                            <span @class([
+                                'whitespace-nowrap text-sm',
+                                'font-bold text-neutral-950' => $loop->first,
+                                'font-medium text-neutral-400' => ! $loop->first,
+                            ])>{{ $step }}</span>
+                        </div>
+                        @unless ($loop->last)
+                            <div class="mx-4 h-px w-12 bg-neutral-200 xl:mx-6 xl:w-20" aria-hidden="true"></div>
+                        @endunless
+                    </li>
+                @endforeach
+            </ol>
 
         </div>
     </div>
@@ -109,7 +72,8 @@
     {{-- CONTENIDO --}}
     {{-- ========================================================= --}}
 
-    <div class="mx-auto max-w-[1340px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    {{-- pb extra en móvil/tablet: deja espacio a la barra fija de "Continuar". --}}
+    <div class="mx-auto max-w-[1340px] px-4 pb-28 pt-6 sm:px-6 sm:pt-8 lg:px-8 lg:pb-8">
 
         {{-- Carrito vacío --}}
         <template x-if="items.length === 0">
@@ -202,11 +166,12 @@
                         <div
                             class="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
 
-                            <div class="flex flex-col gap-4 p-4 sm:flex-row sm:gap-5 sm:p-5">
+                            {{-- Foto a la izquierda en todos los tamaños: en móvil, una foto a todo el ancho hacía cada producto muy alto. --}}
+                            <div class="flex gap-3 p-3 sm:gap-5 sm:p-5">
 
                                 {{-- Imagen --}}
                                 <div
-                                    class="flex h-32 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#f5f5f3] sm:w-32">
+                                    class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#f5f5f3] p-1 sm:h-32 sm:w-32">
 
                                     <template x-if="item.image">
 
@@ -233,7 +198,7 @@
                                 <div class="min-w-0 flex-1">
 
                                     <h2
-                                        class="text-sm font-bold text-neutral-950 sm:text-base"
+                                        class="line-clamp-2 text-sm font-bold leading-snug text-neutral-950 sm:text-base"
                                         x-text="item.name">
                                     </h2>
 
@@ -246,10 +211,10 @@
 
 
                                     {{-- Precio --}}
-                                    <div class="mt-5">
+                                    <div class="mt-2 sm:mt-5">
 
                                         <p
-                                            class="text-lg font-extrabold text-neutral-950"
+                                            class="text-base font-extrabold tabular-nums text-neutral-950 sm:text-lg"
                                             x-text="item.total">
                                         </p>
 
@@ -262,7 +227,7 @@
 
 
                                     {{-- Acciones --}}
-                                    <div class="mt-5 flex flex-wrap items-center gap-5">
+                                    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 sm:mt-5 sm:gap-5">
 
                                         {{-- Cantidad --}}
                                         <div
@@ -284,7 +249,8 @@
                                                     loading ||
                                                     item.quantity <= quantityRules.floor(item.minQuantity, item.quantityIncrement)
                                                 "
-                                                class="flex h-10 w-10 items-center justify-center text-lg font-semibold text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40">
+                                                aria-label="Quitar uno"
+                                                class="flex h-9 w-9 items-center justify-center text-lg font-semibold text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:w-10">
 
                                                 −
 
@@ -292,7 +258,7 @@
 
 
                                             <span
-                                                class="flex h-10 min-w-12 items-center justify-center border-x border-neutral-200 px-3 text-sm font-semibold text-neutral-900"
+                                                class="flex h-9 min-w-11 items-center justify-center border-x border-neutral-200 px-3 text-sm font-semibold tabular-nums text-neutral-900 sm:h-10 sm:min-w-12"
                                                 x-text="item.quantity">
                                             </span>
 
@@ -311,7 +277,8 @@
                                                     )
                                                 "
                                                 :disabled="loading || item.quantity >= item.maxQuantity"
-                                                class="flex h-10 w-10 items-center justify-center text-lg font-semibold text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40">
+                                                aria-label="Agregar uno"
+                                                class="flex h-9 w-9 items-center justify-center text-lg font-semibold text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:w-10">
 
                                                 +
 
@@ -380,9 +347,15 @@
                     </div>
 
 
-                    {{-- ================================================= --}}
-                    {{-- SEGURIDAD / BENEFICIOS --}}
-                    {{-- ================================================= --}}
+                </div>
+
+
+                {{-- ================================================= --}}
+                {{-- SEGURIDAD / BENEFICIOS --}}
+                {{-- ================================================= --}}
+                {{-- En móvil va al final, después del resumen; en escritorio, bajo los productos. --}}
+
+                <div class="order-last lg:order-none lg:col-span-2">
 
                     <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
 
@@ -478,9 +451,10 @@
                 {{-- RESUMEN --}}
                 {{-- ================================================= --}}
 
-                <div class="lg:col-span-1">
+                {{-- En escritorio ocupa la columna derecha junto a productos y beneficios, y se queda fijo bajo el navbar (143 px). --}}
+                <div class="lg:col-start-3 lg:row-span-2 lg:row-start-1">
 
-                    <div class="sticky top-24 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+                    <div id="resumen-compra" class="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm lg:sticky lg:top-[164px]">
 
                         <div class="p-6">
 
@@ -638,6 +612,29 @@
 
                     </div>
 
+                </div>
+
+
+                {{-- ================================================= --}}
+                {{-- BARRA FIJA (MÓVIL Y TABLET) --}}
+                {{-- ================================================= --}}
+                {{-- El total y el botón siempre a la mano, sin bajar hasta el resumen. --}}
+
+                <div
+                    class="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 px-4 pt-3 shadow-[0_-12px_30px_-18px_rgba(0,0,0,0.45)] backdrop-blur dark:border-white/10 dark:bg-[#17191b]/95 sm:px-6 lg:hidden"
+                    style="padding-bottom: max(0.75rem, env(safe-area-inset-bottom));">
+                    <div class="mx-auto flex max-w-[1340px] items-center gap-4">
+                        <div class="min-w-0">
+                            <p class="text-[11px] text-neutral-500">Total (sin envío)</p>
+                            <p class="truncate text-lg font-black tabular-nums text-neutral-950" x-text="total"></p>
+                        </div>
+                        <a
+                            href="{{ auth()->check() ? route('checkout.index') : route('login') }}"
+                            class="ml-auto inline-flex min-w-0 max-w-xs flex-1 items-center justify-center gap-2 rounded-full bg-[#f5a623] px-5 py-3 text-sm font-extrabold text-neutral-950 transition hover:bg-amber-400 active:scale-[0.98]">
+                            <span class="truncate">{{ auth()->check() ? 'Continuar compra' : 'Iniciar sesión' }}</span>
+                            <span class="material-symbols-outlined text-lg" aria-hidden="true">arrow_forward</span>
+                        </a>
+                    </div>
                 </div>
 
             </div>

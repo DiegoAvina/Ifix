@@ -5,12 +5,15 @@ namespace App\Services\Storefront\Catalog\Filters;
 use App\Data\FilterData;
 use App\Data\FilterOptionData;
 use App\Services\Storefront\Catalog\UrlGenerator;
+use App\Services\Storefront\StorefrontAvailabilityQuery;
+use Illuminate\Database\Eloquent\Builder;
 use Lunar\Models\Brand;
 
 class BrandFilter
 {
     public function __construct(
         protected UrlGenerator $urlGenerator,
+        protected StorefrontAvailabilityQuery $storefrontAvailability,
     ) {}
 
     public function build(): FilterData
@@ -23,9 +26,15 @@ class BrandFilter
 
         $selectedBrands = array_map('strval', $selectedBrands);
 
+        // Solo cuenta lo que el cliente puede ver: sin borradores ni productos
+        // fuera del canal, igual que el filtro de categorías. Una marca que
+        // solo tiene borradores no aparece (daría 0 resultados al elegirla).
+        $visible = fn (Builder $products) => $this->storefrontAvailability
+            ->apply($products->where('status', 'published'));
+
         $brands = Brand::query()
-            ->withCount('products')
-            ->whereHas('products')
+            ->withCount(['products' => $visible])
+            ->whereHas('products', $visible)
             ->orderBy('name')
             ->get();
 

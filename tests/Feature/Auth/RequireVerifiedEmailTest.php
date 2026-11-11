@@ -22,6 +22,7 @@ class RequireVerifiedEmailTest extends TestCase
             'email' => 'ana@ejemplo.test',
             'password' => 'password',
             'password_confirmation' => 'password',
+            'privacy' => '1',
         ]);
 
         $user = User::query()->where('email', 'ana@ejemplo.test')->firstOrFail();

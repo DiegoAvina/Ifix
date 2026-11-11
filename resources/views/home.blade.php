@@ -77,24 +77,79 @@
                 </a>
             </div>
 
+            @php
+                // Mosaico: la primera categoría es grande. En escritorio el
+                // mosaico de 4 columnas solo cuadra con exactamente 5.
+                $categoryCount = count($categories);
+                $bento = $categoryCount === 5;
+            @endphp
+
             <div @class([
                 'grid grid-cols-2 gap-3 sm:gap-4',
-                'sm:grid-cols-3 lg:grid-cols-5' => count($categories) >= 5,
-                'lg:grid-cols-4' => count($categories) < 5,
+                'lg:grid-cols-4 lg:auto-rows-[230px]' => $bento,
+                'sm:grid-cols-3' => ! $bento && $categoryCount >= 3,
+                'lg:grid-cols-4' => ! $bento && $categoryCount >= 4,
             ])>
                 @foreach ($categories as $category)
+                    @php
+                        // Destacada: la primera, si así el resto llena filas completas en el celular (2 columnas).
+                        $featured = $loop->first && $categoryCount % 2 === 1;
+                    @endphp
                     <a href="{{ $category['url'] }}"
-                        class="group flex min-h-32 flex-col justify-between rounded-xl border border-neutral-200 bg-white p-4 transition hover:-translate-y-1 hover:border-[#f5a623] hover:shadow-lg sm:min-h-40 sm:p-5">
-                        <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-neutral-950 text-[#f5a623] transition group-hover:bg-[#f5a623] group-hover:text-neutral-950">
-                            <span class="material-symbols-outlined" aria-hidden="true">{{ $category['icon'] }}</span>
+                        @class([
+                            'group relative isolate flex flex-col justify-end overflow-hidden rounded-2xl bg-neutral-950 p-4 text-white shadow-sm ring-1 ring-black/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5a623] sm:p-5',
+                            'col-span-2 h-60 sm:h-72' => $featured,
+                            'h-52 sm:h-64 lg:h-72' => ! $featured,
+                            'lg:row-span-2 lg:h-auto lg:p-7' => $featured && $bento,
+                            'lg:h-auto' => $bento && ! $featured,
+                        ])>
+                        @if ($category['image'] ?? null)
+                            <img src="{{ $category['image'] }}" alt="" loading="lazy" decoding="async"
+                                class="absolute inset-0 -z-20 h-full w-full object-cover object-center opacity-90 transition duration-700 ease-out group-hover:scale-105 group-hover:opacity-100">
+                        @else
+                            <span class="material-symbols-outlined absolute -right-4 -top-4 -z-20 text-[160px] text-white/5" aria-hidden="true">{{ $category['icon'] }}</span>
+                        @endif
+
+                        {{-- Degradado para que el texto se lea sobre cualquier foto. --}}
+                        <span class="absolute inset-0 -z-10 bg-gradient-to-t from-neutral-950 via-neutral-950/55 to-neutral-950/0" aria-hidden="true"></span>
+                        <span class="absolute inset-x-0 bottom-0 -z-10 h-1 origin-left scale-x-0 bg-[#f5a623] transition duration-500 group-hover:scale-x-100" aria-hidden="true"></span>
+
+                        <span class="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-bold text-neutral-100 ring-1 ring-white/15 backdrop-blur sm:left-5 sm:top-5">
+                            <span class="material-symbols-outlined text-[15px] text-[#f5a623]" aria-hidden="true">{{ $category['icon'] }}</span>
+                            {{ $category['count'] }} {{ $category['count'] === 1 ? 'producto' : 'productos' }}
                         </span>
-                        <span class="mt-5 flex items-center justify-between gap-2 text-sm font-bold text-neutral-900">
-                            {{ $category['name'] }}
-                            <span class="material-symbols-outlined text-lg text-neutral-400 transition group-hover:translate-x-1 group-hover:text-[#bd7710]" aria-hidden="true">arrow_forward</span>
+
+                        <span class="flex items-end justify-between gap-3">
+                            <span class="min-w-0">
+                                <span @class([
+                                    'block font-heading font-extrabold leading-tight',
+                                    'text-2xl sm:text-3xl' => $featured,
+                                    'text-base sm:text-lg' => ! $featured,
+                                ])>{{ $category['name'] }}</span>
+                                @if ($category['description'] ?? null)
+                                    <span @class([
+                                        'mt-1 block text-neutral-300',
+                                        'text-sm' => $featured,
+                                        'hidden text-xs sm:block' => ! $featured,
+                                    ])>{{ $category['description'] }}</span>
+                                @endif
+                            </span>
+                            {{-- En tarjetas chicas del celular la flecha le quita espacio al nombre. --}}
+                            <span @class([
+                                'h-9 w-9 shrink-0 items-center justify-center rounded-[50%] bg-white/10 ring-1 ring-white/20 backdrop-blur transition duration-300 group-hover:bg-[#f5a623] group-hover:text-neutral-950 group-hover:ring-[#f5a623]',
+                                'flex' => $featured,
+                                'hidden sm:flex' => ! $featured,
+                            ])>
+                                <span class="material-symbols-outlined text-lg transition group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                            </span>
                         </span>
                     </a>
                 @endforeach
             </div>
+
+            <a href="{{ route('catalog.index') }}" class="mt-5 flex items-center justify-center gap-1 text-sm font-semibold text-neutral-700 hover:text-[#bd7710] sm:hidden">
+                Ver todo el catálogo <span class="material-symbols-outlined text-lg" aria-hidden="true">arrow_forward</span>
+            </a>
         </div>
     </section>
 

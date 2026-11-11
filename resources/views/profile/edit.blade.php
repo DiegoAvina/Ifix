@@ -12,10 +12,20 @@
                 <h1 class="mt-2 text-3xl font-black tracking-tight sm:text-4xl">Hola, {{ $user->name }}</h1>
                 <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-400">Administra tu cuenta, revisa pedidos y mantén tus datos al día.</p>
             </div>
-            <a href="{{ route('catalog.index') }}" class="inline-flex items-center justify-center gap-2 self-start rounded-xl bg-[#f5a623] px-5 py-3 text-sm font-extrabold text-neutral-950 transition hover:bg-amber-400 sm:self-auto">
-                <span class="material-symbols-outlined text-lg" aria-hidden="true">shopping_bag</span>
-                Explorar productos
-            </a>
+            <div class="flex flex-wrap items-center gap-3">
+                <a href="{{ route('catalog.index') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f5a623] px-5 py-3 text-sm font-extrabold text-neutral-950 transition hover:bg-amber-400">
+                    <span class="material-symbols-outlined text-lg" aria-hidden="true">shopping_bag</span>
+                    Explorar productos
+                </a>
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-5 py-3 text-sm font-extrabold text-neutral-800 transition hover:border-red-300 hover:bg-red-50 hover:text-red-700 dark:border-white/15 dark:bg-transparent dark:text-neutral-200 dark:hover:border-red-500/40 dark:hover:bg-red-500/10 dark:hover:text-red-300">
+                        <span class="material-symbols-outlined text-lg" aria-hidden="true">logout</span>
+                        Cerrar sesión
+                    </button>
+                </form>
+            </div>
         </div>
 
         <div class="mt-8 grid gap-4 sm:grid-cols-2">

@@ -22,6 +22,7 @@
     <x-slot:footer>
         <x-mail::footer>
             © {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.
+            Aviso de privacidad: {{ route('legal.privacy') }}
         </x-mail::footer>
     </x-slot:footer>
 </x-mail::layout>

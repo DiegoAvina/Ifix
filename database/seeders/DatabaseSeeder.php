@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             LunarStorefrontSeeder::class,
             DefaultTaxConfigurationSeeder::class,
+            LegalPageSeeder::class,
         ]);
 
         // Las pruebas arman sus propios productos.

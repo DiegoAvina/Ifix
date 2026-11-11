@@ -8,11 +8,14 @@ class AvailabilityQuery
 {
     public function apply(Builder $query): Builder
     {
-        $available = request('availability');
+        $available = (string) request('availability');
 
-        if ($available === null) {
+        // Solo "1" (disponible) o "0" (agotado); vacío o cualquier otro valor no filtra.
+        if (! in_array($available, ['0', '1'], true)) {
             return $query;
         }
+
+        $available = $available === '1';
 
         return $query->whereHas('variants', function ($q) use ($available) {
 

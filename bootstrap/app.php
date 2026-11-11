@@ -25,6 +25,15 @@ return Application::configure(basePath: dirname(__DIR__))
         // de Filament (que registra su propio stack de middleware por
         // panel, pero sigue pasando por el stack global del Kernel).
         $middleware->append(SecurityHeaders::class);
+
+        // El túnel (cloudflared) o el proxy del hosting reciben HTTPS y lo
+        // reenvían a Laravel por HTTP. Sin confiar en sus cabeceras
+        // X-Forwarded-*, Laravel cree que la petición es http:// y los
+        // enlaces firmados (verificación de correo) dan "Invalid signature".
+        // Solo se confía en proxies conocidos (por defecto, la propia máquina).
+        $middleware->trustProxies(
+            at: array_filter(array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', '127.0.0.1,::1')))),
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

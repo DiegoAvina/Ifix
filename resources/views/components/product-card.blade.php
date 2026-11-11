@@ -22,7 +22,7 @@
                 @break
             @endif
         @endforeach
-        <img src="{{ $image }}" alt="{{ $imageAlt }}" loading="lazy"
+        <img src="{{ $image }}" alt="{{ $imageAlt }}" loading="lazy" data-product-image
             class="h-full w-full object-contain transition duration-500 group-hover:scale-105">
     </a>
 
@@ -56,7 +56,7 @@
             @if ($available && $variantId)
                 <button
                     type="button"
-                    x-data="addToCartButton('{{ $addToCartUrl }}', {{ $variantId }}, {{ $inventory->minQuantity }}, {{ $inventory->quantityIncrement }})"
+                    x-data="addToCartButton('{{ $addToCartUrl }}', {{ $variantId }}, {{ $inventory->minQuantity }}, {{ $inventory->quantityIncrement }}, @js(['name' => $name, 'image' => $image]))"
                     @click="add()"
                     :disabled="loading || !variantId"
                     aria-label="Agregar {{ $name }} al carrito"

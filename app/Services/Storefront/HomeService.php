@@ -25,7 +25,7 @@ class HomeService
 
             'collections' => $this->collections->all(),
 
-            'categories' => $this->categories->all(),
+            'categories' => $this->categories->forHome(),
         ];
     }
 

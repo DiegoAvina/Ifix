@@ -31,20 +31,24 @@ $navLinks = $navLinks ?? [
 @endphp
 
 
+{{-- Fijo al hacer scroll: el sticky va en este contenedor y no en el
+     <header>, porque un sticky solo se queda pegado dentro de su padre,
+     y este div termina justo donde termina el header. --}}
 <div
-    x-data="{ mobileMenuOpen: false, scrolled: false }"
+    x-data="{ mobileMenuOpen: false, scrolled: false, searchOpen: @js(request()->filled('search')) }"
     x-init="scrolled = window.scrollY > 8"
-    @scroll.window="scrolled = window.scrollY > 8">
+    @scroll.window="scrolled = window.scrollY > 8"
+    class="sticky top-0 z-50">
 
 <header
     :class="scrolled ? 'shadow-[0_12px_35px_-18px_rgba(0,0,0,0.9)] border-white/15' : 'shadow-none border-white/10'"
-    class="ifix-navbar sticky top-0 z-50 w-full border-b border-white/10 bg-[#090a0b]/95 text-white backdrop-blur-xl transition-all duration-300">
+    class="ifix-navbar relative z-50 w-full border-b border-white/10 bg-[#090a0b]/95 text-white backdrop-blur-xl transition-all duration-300">
 
     <div class="bg-[#171819] text-[10px] font-medium text-neutral-300 sm:text-[11px]">
         <div class="mx-auto flex min-h-7 max-w-[1440px] items-center justify-between gap-3 px-4 py-1 sm:px-6 lg:px-8">
-            <p class="flex items-center gap-1.5 whitespace-nowrap">
+            <p class="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
                 <span class="material-symbols-outlined text-sm text-[#f5a623]" aria-hidden="true">local_shipping</span>
-                <span>Envío gratis a todo México en compras desde ${{ number_format(config('shipping.free_shipping_from'), 0) }} MXN</span>
+                <span class="truncate">Envío gratis a todo México en compras desde ${{ number_format(config('shipping.free_shipping_from'), 0) }} MXN</span>
             </p>
             <div class="hidden items-center gap-4 sm:flex">
                 <a href="https://wa.me/525541698230" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 transition hover:text-[#f5a623]">
@@ -62,14 +66,15 @@ $navLinks = $navLinks ?? [
 
         {{-- Logo + botón menú móvil --}}
 
-        <div class="flex shrink-0 items-center gap-2 sm:gap-3">
+        {{-- Por debajo de 380 px (iPhone SE, Android chicos) logo e iconos se encogen un poco para que el carrito no se salga. --}}
+        <div class="flex shrink-0 items-center gap-1 min-[380px]:gap-2 sm:gap-3">
 
             {{-- Botón menú móvil --}}
 
             <button
                 type="button"
                 @click="mobileMenuOpen = true"
-                class="flex h-10 w-10 items-center justify-center rounded-xl text-neutral-300 transition-colors duration-300 hover:bg-white/10 hover:text-[#f5a623] active:opacity-70 lg:hidden"
+                class="flex h-10 w-9 min-[380px]:w-10 items-center justify-center rounded-xl text-neutral-300 transition-colors duration-300 hover:bg-white/10 hover:text-[#f5a623] active:opacity-70 lg:hidden"
                 aria-label="Abrir menú"
                 :aria-expanded="mobileMenuOpen.toString()">
 
@@ -89,25 +94,37 @@ $navLinks = $navLinks ?? [
                 <img
                     src="{{ asset('images/ifix-logo.svg') }}"
                     alt="IFIX — Productos para detallado"
-                    class="h-auto w-[102px] sm:w-[138px]">
+                    class="h-auto w-[88px] min-[380px]:w-[102px] sm:w-[138px]">
 
             </a>
 
         </div>
 
-        {{-- Búsqueda central --}}
-        <div class="min-w-0 flex-1 px-1 lg:px-3">
+        {{-- Búsqueda central: desde tablet. En celular no cabía (quedaba de 24 px), ahí se abre con la lupa en su propia fila. --}}
+        <div class="hidden min-w-0 flex-1 px-1 md:block lg:px-3">
             <x-search placeholder="Buscar pulimentos, cerámicos, microfibras..." class="ifix-search w-full rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-neutral-900 shadow-inner shadow-black/[0.03] transition focus-within:border-[#f5a623] sm:px-4" />
         </div>
+        <div class="flex-1 md:hidden" aria-hidden="true"></div>
 
-        <div class="flex shrink-0 items-center gap-1 sm:gap-2 lg:gap-3">
+        <div class="flex shrink-0 items-center gap-0.5 sm:gap-2 lg:gap-3">
+
+            <button
+                type="button"
+                @click="searchOpen = !searchOpen; if (searchOpen) $nextTick(() => document.querySelector('#busqueda-movil input')?.focus())"
+                class="ifix-navbar-text flex h-10 w-9 items-center justify-center rounded-lg text-neutral-200 transition hover:bg-white/10 hover:text-[#f5a623] min-[380px]:w-10 md:hidden"
+                :class="searchOpen && 'bg-white/10 text-[#f5a623]'"
+                :aria-label="searchOpen ? 'Cerrar búsqueda' : 'Buscar productos'"
+                :aria-expanded="searchOpen.toString()"
+                aria-controls="busqueda-movil">
+                <span class="material-symbols-outlined text-[22px]" x-text="searchOpen ? 'close' : 'search'" aria-hidden="true">search</span>
+            </button>
 
             <button
                 type="button"
                 x-data="{ darkMode: document.documentElement.classList.contains('dark') }"
                 @theme-changed.window="darkMode = $event.detail.dark"
                 @click="window.toggleTheme()"
-                class="ifix-navbar-text flex h-9 w-9 items-center justify-center rounded-lg text-neutral-200 transition hover:bg-white/10 hover:text-[#f5a623]"
+                class="ifix-navbar-text flex h-10 w-9 items-center justify-center rounded-lg text-neutral-200 transition hover:bg-white/10 hover:text-[#f5a623] min-[380px]:w-10 sm:h-9 sm:w-9"
                 :aria-label="darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
                 title="Cambiar tema">
                 <span class="material-symbols-outlined text-[20px]" x-text="darkMode ? 'light_mode' : 'dark_mode'" aria-hidden="true"></span>
@@ -115,10 +132,11 @@ $navLinks = $navLinks ?? [
 
             <a
                 href="{{ auth()->check() ? route('profile.edit') : route('login') }}"
-                class="ifix-navbar-text flex h-10 items-center gap-2 rounded-lg px-1.5 text-sm font-semibold leading-tight text-neutral-100 transition hover:text-[#f5a623] sm:px-2"
+                class="ifix-navbar-text flex h-10 min-w-9 items-center justify-center gap-2 rounded-lg px-1.5 text-sm min-[380px]:min-w-10 font-semibold leading-tight text-neutral-100 transition hover:bg-white/10 hover:text-[#f5a623] sm:px-2 lg:hover:bg-transparent"
                 aria-label="Mi cuenta">
                 <span class="material-symbols-outlined text-[20px]" aria-hidden="true">person_outline</span>
-                <span class="hidden sm:flex sm:flex-col">
+                {{-- El texto solo desde 1024 px: en tablet ese espacio es del buscador. --}}
+                <span class="hidden lg:flex lg:flex-col">
                     @auth
                         <span class="text-[9px] font-bold uppercase tracking-wider text-neutral-400">Bienvenido</span>
                         <span>Mi cuenta</span>
@@ -137,7 +155,8 @@ $navLinks = $navLinks ?? [
 
             <a
                 href="{{ auth()->check() ? route('profile.edit') : route('login') }}"
-                class="hidden h-9 w-9 items-center justify-center rounded-full bg-[#7c5800] text-amber-100 transition hover:bg-[#a87500] sm:flex"
+                {{-- Lleva al mismo lugar que "Mi cuenta": solo en pantallas grandes, donde sobra espacio. --}}
+                class="hidden h-9 w-9 items-center justify-center rounded-full bg-[#7c5800] text-amber-100 transition hover:bg-[#a87500] xl:flex"
                 aria-label="Abrir mi cuenta">
                 <span class="material-symbols-outlined text-lg" aria-hidden="true">person</span>
             </a>
@@ -156,8 +175,9 @@ $navLinks = $navLinks ?? [
 
                 <button
                     type="button"
+                    data-cart-target
                     @click="open = !open"
-                    class="ifix-navbar-text relative flex h-10 items-center justify-center gap-2 rounded-full bg-white/10 px-3 text-neutral-100 transition-all duration-200 hover:bg-white/15 hover:text-[#f5a623] active:scale-95"
+                    class="ifix-navbar-text relative flex h-10 min-w-10 items-center justify-center gap-2 rounded-full bg-white/10 px-2.5 text-neutral-100 sm:px-3 transition-all duration-200 hover:bg-white/15 hover:text-[#f5a623] active:scale-95"
                     aria-label="Ver carrito"
                     :aria-expanded="open.toString()">
 
@@ -198,12 +218,12 @@ $navLinks = $navLinks ?? [
                     x-transition:leave-end="opacity-0 scale-95"
                     @click.outside="open = false"
                     @keydown.escape.window="open = false"
-                    class="absolute right-0 top-full z-[100] mt-3 w-[min(92vw,400px)] origin-top-right overflow-hidden rounded-2xl border border-white/10 bg-[#111315] text-white shadow-2xl shadow-black/50">
+                    class="absolute right-0 top-full z-[100] mt-3 flex max-h-[calc(100dvh-7.5rem)] w-[min(92vw,400px)] origin-top-right flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111315] text-white shadow-2xl shadow-black/50">
 
                     {{-- Header --}}
 
                     <div
-                        class="flex items-center justify-between border-b border-white/10 bg-[#17191b] px-5 py-4">
+                        class="flex shrink-0 items-center justify-between border-b border-white/10 bg-[#17191b] px-5 py-4">
 
                         <div>
 
@@ -242,7 +262,8 @@ $navLinks = $navLinks ?? [
                     {{-- PRODUCTOS --}}
                     {{-- ================================================= --}}
 
-                    <div class="max-h-[360px] overflow-y-auto px-3">
+                    {{-- Solo esta parte hace scroll: el panel nunca es más alto que la pantalla. --}}
+                    <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3">
 
                         {{-- Carrito vacío --}}
 
@@ -371,7 +392,7 @@ $navLinks = $navLinks ?? [
                     {{-- ================================================= --}}
 
                     <div
-                        class="border-t border-white/10 bg-[#17191b] px-5 py-4">
+                        class="shrink-0 border-t border-white/10 bg-[#17191b] px-5 py-4">
 
                         <div
                             x-show="items.length > 0"
@@ -467,6 +488,22 @@ $navLinks = $navLinks ?? [
 
         </div>
 
+    </div>
+
+    {{-- Búsqueda en celular: se abre con la lupa, a todo lo ancho y con el cursor ya en el campo. --}}
+    <div
+        id="busqueda-movil"
+        x-show="searchOpen"
+        x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="-translate-y-2 opacity-0"
+        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @keydown.escape="searchOpen = false"
+        class="border-t border-white/[0.06] px-3 pb-3 pt-2.5 sm:px-6 md:hidden">
+        <x-search placeholder="Buscar pulimentos, cerámicos..." class="ifix-search w-full rounded-full border border-neutral-200 bg-white px-4 py-2 text-neutral-900 shadow-inner shadow-black/[0.03] transition focus-within:border-[#f5a623]" />
     </div>
 
     <nav class="hidden border-t border-white/[0.06] bg-[#202122] lg:block" aria-label="Categorías de productos">

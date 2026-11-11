@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Filament\Resources\HeroSlideResource;
+use App\Filament\Resources\LegalPageResource;
 use App\PaymentTypes\MercadoPagoPayment;
 use App\Services\Lunar\SafeTelemetryService;
 use App\Services\Shipping\StandardShippingModifier;
@@ -35,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
     {
         LunarPanel::panel(fn (Panel $panel) => $panel->resources([
             HeroSlideResource::class,
+            LegalPageResource::class,
         ]))->register();
     }
 

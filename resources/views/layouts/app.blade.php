@@ -101,6 +101,8 @@
 
     @include('partials.navbar')
 
+    @include('partials.cart-toast')
+
 
     {{-- ========================================================= --}}
     {{-- CONTENIDO --}}

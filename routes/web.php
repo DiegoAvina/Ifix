@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Lunar\Models\Product;
 
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\SearchSuggestionController;
@@ -44,6 +45,14 @@ Route::get('/robots.txt', [SeoController::class, 'robots'])
 
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])
     ->name('seo.sitemap');
+
+// Textos legales editables en el panel de Lunar (Páginas legales).
+Route::get('/aviso-de-privacidad', [LegalPageController::class, 'privacy'])
+    ->name('legal.privacy');
+
+Route::get('/legal/{slug}', [LegalPageController::class, 'show'])
+    ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->name('legal.show');
 
 Route::get('/dashboard', function () {
     return redirect()->route('profile.edit');

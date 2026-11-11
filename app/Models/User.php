@@ -47,6 +47,7 @@ class User extends Authenticatable implements FilamentUser, LunarUser, MustVerif
     {
         return [
             'email_verified_at' => 'datetime',
+            'privacy_accepted_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
         ];

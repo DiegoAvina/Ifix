@@ -99,6 +99,8 @@
 
             <img
 
+                data-product-main-image
+
                 src="{{ $product->image?->url }}"
 
                 alt="{{ $product->image?->alt ?: $product->name }}"

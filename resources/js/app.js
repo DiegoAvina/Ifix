@@ -12,12 +12,14 @@ import Swiper from 'swiper';
 import {
     Navigation,
     Pagination,
-    Autoplay
+    Autoplay,
+    EffectFade
 } from 'swiper/modules';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/effect-fade';
 
 window.Swiper = Swiper;
 
@@ -35,19 +37,33 @@ window.SwiperModules = {
 // Los slides fuera de pantalla quedan "inert" para que el foco
 // con teclado no llegue a sus enlaces y desacomode el carrusel.
 
+//
+// Transición en fundido; la entrada del texto y el acercamiento de la
+// foto los anima el CSS del slide activo (ver .hero-* en app.css). El
+// anillo del botón "siguiente" muestra cuánto falta para cambiar de
+// oferta, y el contador indica en cuál vas.
+
 const syncHeroSlides = (swiper) => {
     swiper.slides.forEach((slide, index) => {
         slide.inert = index !== swiper.activeIndex;
     });
+
+    const current = swiper.el.querySelector('[data-hero-current]');
+
+    if (current) {
+        current.textContent = String(swiper.realIndex + 1).padStart(2, '0');
+    }
 };
 
 document.querySelectorAll('[data-hero-carousel]').forEach((carousel) => {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     new Swiper(carousel, {
-        modules: [Navigation, Pagination, Autoplay],
+        modules: [Navigation, Pagination, Autoplay, EffectFade],
+        effect: 'fade',
+        fadeEffect: { crossFade: true },
         rewind: true,
-        speed: 600,
+        speed: 800,
         autoplay: reduceMotion
             ? false
             : { delay: 6000, disableOnInteraction: false, pauseOnMouseEnter: true },
@@ -62,6 +78,10 @@ document.querySelectorAll('[data-hero-carousel]').forEach((carousel) => {
         on: {
             init: syncHeroSlides,
             slideChange: syncHeroSlides,
+            // progress va de 1 a 0 mientras corre el tiempo del slide.
+            autoplayTimeLeft: (swiper, timeLeft, progress) => {
+                carousel.style.setProperty('--hero-progress', String(1 - progress));
+            },
         },
     });
 });
@@ -715,10 +735,90 @@ window.cartWidget = function () {
 
 
 // ============================================================
+// ANIMACIÓN AL AGREGAR AL CARRITO
+// ============================================================
+//
+// Una copia de la foto del producto "vuela" hasta el carrito del
+// navbar ([data-cart-target]), el icono rebota y el aviso de
+// partials/cart-toast muestra qué se agregó. Se llama solo después de
+// que el servidor confirmó el producto en el carrito.
+
+const flyToCart = (sourceImage) => {
+    const target = [...document.querySelectorAll('[data-cart-target]')]
+        .find((element) => element.offsetParent !== null);
+
+    if (!target) {
+        return;
+    }
+
+    const bump = () => target.animate(
+        [{ transform: 'scale(1)' }, { transform: 'scale(1.22)' }, { transform: 'scale(0.94)' }, { transform: 'scale(1)' }],
+        { duration: 450, easing: 'ease-out' }
+    );
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const from = sourceImage?.getBoundingClientRect();
+
+    if (reduceMotion || !from || from.width === 0) {
+        bump();
+        return;
+    }
+
+    const to = target.getBoundingClientRect();
+    const size = Math.min(from.width, from.height, 220);
+    const startX = from.left + from.width / 2 - size / 2;
+    const startY = from.top + from.height / 2 - size / 2;
+    const dx = to.left + to.width / 2 - (startX + size / 2);
+    const dy = to.top + to.height / 2 - (startY + size / 2);
+
+    const flyer = document.createElement('img');
+    flyer.src = sourceImage.currentSrc || sourceImage.src;
+    flyer.alt = '';
+    flyer.setAttribute('aria-hidden', 'true');
+    Object.assign(flyer.style, {
+        position: 'fixed',
+        left: `${startX}px`,
+        top: `${startY}px`,
+        width: `${size}px`,
+        height: `${size}px`,
+        objectFit: 'contain',
+        padding: '10px',
+        background: '#f4f4f2',
+        borderRadius: '18px',
+        boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.55), 0 0 0 2px #f5a623',
+        zIndex: '9999',
+        pointerEvents: 'none',
+    });
+    document.body.appendChild(flyer);
+
+    // Sube un poco y luego cae en arco hacia el carrito mientras se encoge.
+    flyer.animate([
+        { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+        { transform: 'translate(0, -24px) scale(1.06)', opacity: 1, offset: 0.15 },
+        { transform: `translate(${dx * 0.55}px, ${dy * 0.55 - 90}px) scale(0.55)`, opacity: 1, offset: 0.6 },
+        { transform: `translate(${dx}px, ${dy}px) scale(0.1)`, opacity: 0.35 },
+    ], { duration: 850, easing: 'cubic-bezier(0.55, 0, 0.35, 1)' }).finished
+        .catch(() => {})
+        .finally(() => {
+            flyer.remove();
+            bump();
+        });
+};
+
+window.ifixCartAdded = ({ sourceImage = null, name = '', image = null, quantity = 1 } = {}) => {
+    flyToCart(sourceImage);
+
+    window.dispatchEvent(new CustomEvent('cart-added', {
+        detail: { name, image: image || sourceImage?.currentSrc || sourceImage?.src || null, quantity },
+    }));
+};
+
+
+// ============================================================
 // AGREGAR AL CARRITO (cards de producto)
 // ============================================================
 
-window.addToCartButton = function (url, variantId, minQuantity = 1, quantityIncrement = 1) {
+window.addToCartButton = function (url, variantId, minQuantity = 1, quantityIncrement = 1, product = {}) {
 
     return {
 
@@ -800,6 +900,13 @@ window.addToCartButton = function (url, variantId, minQuantity = 1, quantityIncr
                         }
                     )
                 );
+
+                window.ifixCartAdded({
+                    sourceImage: this.$el.closest('article')?.querySelector('[data-product-image]'),
+                    name: product.name,
+                    image: product.image,
+                    quantity,
+                });
 
                 setTimeout(() => {
                     this.added = false;
