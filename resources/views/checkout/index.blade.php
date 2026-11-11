@@ -316,9 +316,20 @@
                                 {{ $shippingEstimate->freeShipping ? 'Gratis' : '$' . number_format($shippingEstimate->shippingCost, 2) . ' MXN' }}
                             </p>
                             <p class="mt-1 text-sm text-secondary">
+                                @if ($shippingEstimate->postcodeKnown)
+                                    Zona {{ $shippingEstimate->zoneName }} ·
+                                @endif
                                 Llega entre el {{ $shippingEstimate->from->translatedFormat('d \d\e F') }}
                                 y el {{ $shippingEstimate->to->translatedFormat('d \d\e F') }}.
                             </p>
+                            @if ($shippingEstimate->extendedZone)
+                                {{-- Zona extendida: la paquetería cobra un cargo extra y tarda más. --}}
+                                <p class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                                    Tu código postal es zona extendida: incluye un cargo de ${{ number_format($shippingEstimate->extendedSurcharge, 2) }} MXN y unos días más de entrega.
+                                </p>
+                            @elseif (! $shippingEstimate->postcodeKnown)
+                                <p class="mt-2 text-xs text-secondary">Costo estimado: el final se calcula con el código postal de tu dirección de envío.</p>
+                            @endif
                         </div>
 
                     </div>

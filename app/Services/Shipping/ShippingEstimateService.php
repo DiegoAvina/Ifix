@@ -7,42 +7,36 @@ use App\Data\Shipping\ShippingEstimateData;
 
 class ShippingEstimateService
 {
-    public function estimate(
-        ShippingContextData $context
-    ): ShippingEstimateData {
+    public function __construct(
+        protected ShippingRateCalculator $calculator,
+    ) {}
 
-        $processing = now()->addDays(
-            config('shipping.processing_days')
-        );
+    public function estimate(ShippingContextData $context): ShippingEstimateData
+    {
+        $quote = $this->calculator->quote($context->postalCode, $context->cartTotal, $context->weight);
 
-        $from = $processing
-            ->copy()
-            ->addDays(config('shipping.delivery.min_days'));
+        $processing = now()->addDays($quote->processingDays);
 
-        $to = $processing
-            ->copy()
-            ->addDays(config('shipping.delivery.max_days'));
-
-        $freeShipping = $context->cartTotal >= config('shipping.free_shipping_from');
+        $message = match (true) {
+            $quote->freeShipping => 'Envío gratuito',
+            $quote->extendedZone && $quote->total === $quote->extendedSurcharge => 'Envío gratis + cargo por zona extendida',
+            $quote->extendedZone => 'Incluye cargo por zona extendida',
+            ! $quote->postcodeKnown => 'Estimado; el costo final depende de tu código postal',
+            default => 'Envío a '.$quote->zoneName,
+        };
 
         return new ShippingEstimateData(
-
             postalCode: $context->postalCode ?? 'Sin definir',
-
             processingDate: $processing,
-
-            from: $from,
-
-            to: $to,
-
-            freeShipping: $freeShipping,
-
-            shippingCost: $freeShipping ? 0 : (int) config('shipping.standard_cost'),
-
-            message: $freeShipping
-                ? 'Envío gratuito'
-                : 'Costo calculado al finalizar la compra'
-
+            from: $processing->copy()->addDays($quote->minDays),
+            to: $processing->copy()->addDays($quote->maxDays),
+            freeShipping: $quote->freeShipping,
+            shippingCost: $quote->total,
+            message: $message,
+            zoneName: $quote->zoneName,
+            extendedZone: $quote->extendedZone,
+            extendedSurcharge: $quote->extendedSurcharge,
+            postcodeKnown: $quote->postcodeKnown,
         );
     }
 }

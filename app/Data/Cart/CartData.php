@@ -18,6 +18,6 @@ final readonly class CartData
         public float $subtotalAmount,
         public float $amountUntilFreeShipping,
         public int $freeShippingFrom,
-        public int $estimatedShipping,
+        public float $estimatedShipping,
     ) {}
 }

@@ -8,8 +8,8 @@
 <div
     x-data="cartWidget"
     data-cart-url="{{ route('cart.data') }}"
-    data-free-shipping-from="{{ config('shipping.free_shipping_from') }}"
-    data-standard-shipping-cost="{{ config('shipping.standard_cost') }}"
+    data-free-shipping-from="{{ (int) ($freeShippingFrom ?? 0) }}"
+    data-standard-shipping-cost="{{ $cart->estimatedShipping ?? 0 }}"
     x-init="init($el.dataset.cartUrl, Number($el.dataset.freeShippingFrom), Number($el.dataset.standardShippingCost))"
     class="min-h-screen bg-[#f5f5f3]">
 
@@ -151,7 +151,9 @@
                                         :style="`width: ${freeShippingProgress}%`"></div>
                                 </div>
                                 <p class="mt-2 text-[11px] text-neutral-500">
-                                    Envío gratis en compras de ${{ number_format(config('shipping.free_shipping_from'), 0) }} MXN o más.
+                                    @if ($freeShippingFrom)
+                                        Envío gratis en compras de ${{ number_format($freeShippingFrom, 0) }} MXN o más.
+                                    @endif
                                 </p>
                             </div>
                         </div>

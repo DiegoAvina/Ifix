@@ -1,9 +1,7 @@
 @php
-
-$from = now()->addDays(2);
-
-$to = now()->addDays(4);
-
+    // Días según la zona del C.P. que el cliente escribió (o la zona general).
+    $from = $shippingEstimate?->from ?? now()->addDays(2);
+    $to = $shippingEstimate?->to ?? now()->addDays(4);
 @endphp
 
 <div class="mt-5 rounded-2xl border border-neutral-200 bg-[#f5f5f3] p-4 sm:p-5">
@@ -44,11 +42,11 @@ $to = now()->addDays(4);
 
             </p>
 
-            <p class="mt-2 text-xs font-bold text-emerald-700">
-
-                Envío gratis desde ${{ number_format(config('shipping.free_shipping_from'), 0) }}
-
-            </p>
+            @if ($freeShippingFrom ?? null)
+                <p class="mt-2 text-xs font-bold text-emerald-700">
+                    Envío gratis desde ${{ number_format($freeShippingFrom, 0) }}
+                </p>
+            @endif
 
         </div>
 

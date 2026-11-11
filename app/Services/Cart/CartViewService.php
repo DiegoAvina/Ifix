@@ -34,9 +34,9 @@ class CartViewService
                 total: $this->money(null),
                 freeShipping: false,
                 subtotalAmount: 0,
-                amountUntilFreeShipping: (float) config('shipping.free_shipping_from'),
-                freeShippingFrom: (int) config('shipping.free_shipping_from'),
-                estimatedShipping: (int) config('shipping.standard_cost'),
+                amountUntilFreeShipping: (float) ($this->shippingView->freeShippingFrom() ?? 0),
+                freeShippingFrom: (int) ($this->shippingView->freeShippingFrom() ?? 0),
+                estimatedShipping: $this->shippingView->estimateFor(cartTotal: 0)->shippingCost,
             );
         }
 
@@ -56,10 +56,9 @@ class CartViewService
             ->toArray();
 
         $subtotalAmount = $cart->subTotal?->decimal() ?? 0.0;
-        $shippingEstimate = $this->shippingView->estimateFor(
-            cartTotal: $subtotalAmount,
-            itemCount: (int) $cart->lines->sum('quantity'),
-        );
+        // Zona por el C.P. (dirección de envío o el que escribió el cliente) y peso real.
+        $shippingEstimate = $this->shippingView->estimateForCart($cart, $subtotalAmount);
+        $freeShippingFrom = $this->shippingView->freeShippingFrom();
 
         return new CartData(
             quantity: (int) $cart->lines->sum('quantity'),
@@ -86,12 +85,12 @@ class CartViewService
 
             subtotalAmount: $subtotalAmount,
 
-            amountUntilFreeShipping: max(
+            amountUntilFreeShipping: $freeShippingFrom === null ? 0 : max(
                 0,
-                (float) config('shipping.free_shipping_from') - $subtotalAmount,
+                $freeShippingFrom - $subtotalAmount,
             ),
 
-            freeShippingFrom: (int) config('shipping.free_shipping_from'),
+            freeShippingFrom: (int) ($freeShippingFrom ?? 0),
 
             estimatedShipping: $shippingEstimate->shippingCost,
         );

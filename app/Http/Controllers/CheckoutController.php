@@ -47,9 +47,10 @@ class CheckoutController extends Controller
             'billingAddress',
         ]);
 
-        $shippingEstimate = $this->shippingView->estimateFor(
-            cartTotal: $cart->subTotal?->decimal() ?? 0.0,
-            itemCount: (int) $cart->lines->sum('quantity'),
+        // Zona por el C.P. de la dirección de envío (o el del estimador) y peso real.
+        $shippingEstimate = $this->shippingView->estimateForCart(
+            $cart,
+            $cart->subTotal?->decimal() ?? 0.0,
         );
 
         return view('checkout.index', [
@@ -68,7 +69,7 @@ class CheckoutController extends Controller
 
             'hasPostalCode' => $this->shippingView->hasPostalCode(),
 
-            'postalCode' => $this->shippingView->currentPostalCode(),
+            'postalCode' => $cart->shippingAddress?->postcode ?? $this->shippingView->currentPostalCode(),
 
             'hasShippingAddress' => (bool) $cart->shippingAddress,
 

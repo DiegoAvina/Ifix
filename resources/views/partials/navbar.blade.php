@@ -48,7 +48,7 @@ $navLinks = $navLinks ?? [
         <div class="mx-auto flex min-h-7 max-w-[1440px] items-center justify-between gap-3 px-4 py-1 sm:px-6 lg:px-8">
             <p class="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
                 <span class="material-symbols-outlined text-sm text-[#f5a623]" aria-hidden="true">local_shipping</span>
-                <span class="truncate">Envío gratis a todo México en compras desde ${{ number_format(config('shipping.free_shipping_from'), 0) }} MXN</span>
+                <span class="truncate">@if ($freeShippingFrom ?? null)Envío gratis a todo México en compras desde ${{ number_format($freeShippingFrom, 0) }} MXN @else Envíos a todo México @endif</span>
             </p>
             <div class="hidden items-center gap-4 sm:flex">
                 <a href="https://wa.me/525541698230" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 transition hover:text-[#f5a623]">

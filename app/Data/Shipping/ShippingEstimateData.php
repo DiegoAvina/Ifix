@@ -10,7 +10,12 @@ final readonly class ShippingEstimateData
         public \Illuminate\Support\Carbon $from,
         public \Illuminate\Support\Carbon $to,
         public bool $freeShipping,
-        public int $shippingCost,
+        // Pesos (puede tener centavos).
+        public float $shippingCost,
         public string $message,
+        public string $zoneName = 'Estándar',
+        public bool $extendedZone = false,
+        public float $extendedSurcharge = 0,
+        public bool $postcodeKnown = false,
     ) {}
 }

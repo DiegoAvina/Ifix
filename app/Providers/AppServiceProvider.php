@@ -41,6 +41,11 @@ class AppServiceProvider extends ServiceProvider
             ->resources([
                 HeroSlideResource::class,
                 LegalPageResource::class,
+                \App\Filament\Resources\ShippingZoneResource::class,
+                \App\Filament\Resources\ShippingExtendedPostcodeResource::class,
+            ])
+            ->pages([
+                \App\Filament\Pages\ShippingSettingsPage::class,
             ])
             // Marca IFIX en lugar de la de Lunar (licencia MIT: se permite).
             ->brandName('IFIX')
@@ -96,6 +101,19 @@ class AppServiceProvider extends ServiceProvider
         View::composer('partials.navbar', fn ($view) => $view->with(
             'storefrontCategories',
             rescue(fn () => app(CategoryService::class)->all(), [], false),
+        ));
+
+        // Monto de envío gratis de "Ajustes de envío" (null = desactivado).
+        View::composer(['partials.navbar', 'cart.index', 'products.partials.shipping'], fn ($view) => $view->with(
+            'freeShippingFrom',
+            rescue(fn () => app(\App\Services\Shipping\ShippingViewService::class)->freeShippingFrom(), null, false),
+        ));
+
+        // Días de entrega en la ficha de producto: zona del C.P. que el cliente
+        // haya escrito (o la zona general si aún no lo escribe).
+        View::composer('products.partials.shipping', fn ($view) => $view->with(
+            'shippingEstimate',
+            rescue(fn () => app(\App\Services\Shipping\ShippingViewService::class)->estimateFor(cartTotal: 0), null, false),
         ));
 
         // El índice de búsqueda aproximada se reconstruye al editar productos.

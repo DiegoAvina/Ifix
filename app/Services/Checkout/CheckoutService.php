@@ -30,7 +30,7 @@ class CheckoutService
     /**
      * Aplica una dirección guardada del cliente como dirección de
      * envío del carrito, y de paso activa nuestra única opción de
-     * envío (no hay integración de paquetería, es una tarifa fija).
+     * envío (sin integración de paquetería: tarifas del panel por C.P. y peso).
      */
     public function useShippingAddress(Cart $cart, Address $address): void
     {

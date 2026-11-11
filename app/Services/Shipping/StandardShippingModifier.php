@@ -11,9 +11,9 @@ use Lunar\Models\Contracts\Cart as CartContract;
 use Lunar\Models\TaxClass;
 
 /**
- * Único método de envío de la tienda: una tarifa plana definida en
- * config/shipping.php, gratuita a partir de cierto monto. No integra
- * ninguna paquetería externa — solo expone esa regla como una
+ * Único método de envío de la tienda. El costo sale de las tarifas del
+ * panel (zona por C.P., peso y zona extendida; ver ShippingRateCalculator).
+ * No integra ninguna paquetería externa — solo expone esa regla como una
  * Lunar\DataTypes\ShippingOption real, que es lo que Lunar necesita
  * para poder crear una Order (Cart::createOrder() exige que el
  * carrito tenga una opción de envío aplicada cuando es "shippable").
@@ -39,18 +39,17 @@ class StandardShippingModifier extends ShippingModifier
             fn ($line) => $line->subTotal?->value ?? 0
         );
 
-        $estimate = app(ShippingViewService::class)->estimateFor(
-            cartTotal: $subTotalMinorUnits / (10 ** $decimalPlaces),
-            itemCount: (int) $cart->lines->sum('quantity'),
+        // Zona por el C.P. de la dirección de envío, peso real del carrito.
+        $estimate = app(ShippingViewService::class)->estimateForCart(
+            $cart,
+            $subTotalMinorUnits / (10 ** $decimalPlaces),
         );
-
-        $decimalPlaces = $cart->currency?->decimal_places ?? 2;
 
         ShippingManifest::addOption(new ShippingOption(
             name: 'Envío estándar',
             description: $estimate->freeShipping
                 ? 'Envío gratuito'
-                : 'Entrega mediante paquetería estándar',
+                : $estimate->message,
             identifier: self::IDENTIFIER,
             price: new Price(
                 (int) round($estimate->shippingCost * (10 ** $decimalPlaces)),
