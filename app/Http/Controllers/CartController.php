@@ -17,6 +17,15 @@ use InvalidArgumentException;
 
 class CartController extends Controller
 {
+    private const QUANTITY_MESSAGES = [
+        'quantity.required' => 'Indica cuántas piezas quieres.',
+        'quantity.integer' => 'La cantidad debe ser un número entero.',
+        'quantity.min' => 'La cantidad debe ser al menos 1.',
+        'quantity.max' => 'Puedes pedir hasta 999 piezas por producto.',
+        'variant_id.required' => 'Elige un producto.',
+        'variant_id.exists' => 'El producto ya no está disponible.',
+    ];
+
     public function __construct(
         protected CartService $cartService,
         protected CartViewService $cartViewService,
@@ -67,7 +76,7 @@ class CartController extends Controller
                 'max:999',
             ],
 
-        ]);
+        ], self::QUANTITY_MESSAGES);
 
         return $this->handleCartAction(function () use ($validated) {
 
@@ -105,7 +114,7 @@ class CartController extends Controller
                 'min:1',
                 'max:999',
             ],
-        ]);
+        ], self::QUANTITY_MESSAGES);
 
         return $this->handleCartAction(function () use ($validated, $line) {
 

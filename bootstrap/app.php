@@ -42,7 +42,10 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // JSON para la API y para las peticiones que lo piden (el carrito
+        // por JavaScript): así reciben el mensaje de error (p. ej. 422 de
+        // validación) en vez de una redirección HTML que no pueden leer.
         $exceptions->shouldRenderJsonWhen(
-            fn (Request $request) => $request->is('api/*'),
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
     })->create();

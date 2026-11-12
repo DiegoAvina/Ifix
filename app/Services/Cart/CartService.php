@@ -45,8 +45,14 @@ class CartService
 
         $this->validateQuantity($quantity);
 
+        // El carrito se crea FUERA de la transacción: si la validación de
+        // abajo falla (p. ej. más piezas de las que hay), la transacción se
+        // revierte, y un carrito creado dentro desaparecería mientras la
+        // sesión conserva su id; el siguiente "Agregar" daría error 500.
+        $cart = $this->getOrCreate();
 
         return DB::transaction(function () use (
+            $cart,
             $variant,
             $quantity,
             $meta
@@ -64,8 +70,6 @@ class CartService
                     'El producto ya no está disponible.'
                 );
             }
-
-            $cart = $this->getOrCreate();
 
             /*
         |--------------------------------------------------------------------------

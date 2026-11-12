@@ -101,7 +101,14 @@ class CheckoutService
                 );
             }
 
-            if (! $variant->canBeFulfilledAtQuantity($line->quantity)) {
+            // Se suma el producto en todas sus líneas: el mismo producto
+            // puede estar en dos líneas y cada una por separado sí cabría.
+            $totalQuantity = (int) $cart->lines
+                ->where('purchasable_type', $line->purchasable_type)
+                ->where('purchasable_id', $line->purchasable_id)
+                ->sum('quantity');
+
+            if (! $variant->canBeFulfilledAtQuantity($totalQuantity)) {
 
                 $name = $variant->getDescription();
 
