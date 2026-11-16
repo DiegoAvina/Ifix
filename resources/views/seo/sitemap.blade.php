@@ -30,6 +30,13 @@
 @endforeach
     </url>
 @endforeach
+@if (\App\Models\AboutPage::current()->published)
+    <url>
+        <loc>{{ route('about') }}</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.5</priority>
+    </url>
+@endif
 @foreach ($legalPages as $page)
     <url>
         <loc>{{ $page->url() }}</loc>

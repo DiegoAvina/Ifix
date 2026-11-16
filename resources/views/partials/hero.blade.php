@@ -34,6 +34,10 @@
                                 {{ $slide['eyebrow'] }}
                             </span>
                             <{{ $loop->first ? 'h1' : 'h2' }} data-hero-reveal style="--reveal-delay: 90ms" class="mt-5 font-heading text-4xl font-black uppercase leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
+                                {{-- El título del slide es de marketing y cambia desde el panel: el H1 siempre lleva la marca y la categoría para búsquedas de marca. --}}
+                                @if ($loop->first)
+                                    <span class="sr-only">IFIX Detallado Automotriz: </span>
+                                @endif
                                 {{ $slide['title'] }}
                             </{{ $loop->first ? 'h1' : 'h2' }}>
                             @if ($slide['description'])

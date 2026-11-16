@@ -60,6 +60,29 @@ $initialQty = $minQuantity + (($minQuantity % $quantityIncrement === 0)
 
     variantId: {{ $variantId ?? "null" }},
 
+    showBar: false,
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Barra de compra fija (solo móvil)
+    |--------------------------------------------------------------------------
+    |
+    | Aparece cuando los botones principales no están en pantalla.
+    */
+
+    init() {
+
+        if (!("IntersectionObserver" in window) || !this.$refs.actions) {
+            return;
+        }
+
+        new IntersectionObserver(([entry]) => {
+            this.showBar = !entry.isIntersecting;
+        }).observe(this.$refs.actions);
+
+    },
+
 
     /*
     |--------------------------------------------------------------------------
@@ -549,7 +572,7 @@ if (!data.success) {
 
 }'
 
-    class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-7 lg:sticky lg:top-28">
+    class="min-w-0 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-7 lg:sticky lg:top-28">
 
 
     {{-- ================================================================ --}}
@@ -567,7 +590,7 @@ if (!data.success) {
     {{-- ================================================================ --}}
 
     <h1
-        class="mt-3 font-heading text-2xl font-extrabold leading-tight tracking-tight text-neutral-950 sm:text-3xl lg:text-4xl">
+        class="mt-3 break-words font-heading text-[1.4rem] font-extrabold leading-tight tracking-tight text-neutral-950 [hyphens:auto] sm:text-3xl lg:text-4xl" lang="es">
         {{ $product->name }}
     </h1>
 
@@ -579,7 +602,7 @@ if (!data.success) {
     @if($product->inventory->sku)
 
     <div
-        class="mt-3 flex items-center gap-2 text-xs text-neutral-500">
+        class="mt-3 flex min-w-0 items-center gap-2 break-all text-xs text-neutral-500">
 
         <span class="font-medium">
             SKU:
@@ -598,7 +621,7 @@ if (!data.success) {
     {{-- SEPARADOR --}}
     {{-- ================================================================ --}}
 
-    <div class="my-6 border-t border-neutral-100"></div>
+    <div class="my-5 border-t border-neutral-100 sm:my-6"></div>
 
 
     {{-- ================================================================ --}}
@@ -614,7 +637,7 @@ if (!data.success) {
 
         @if ($product->price->compareFormatted)
             <p
-                class="mt-1 flex items-baseline gap-2 text-sm tabular-nums text-neutral-500 sm:text-base">
+                class="mt-1 flex flex-wrap items-baseline gap-x-2 text-sm tabular-nums text-neutral-500 sm:text-base">
                 <span class="sr-only">Precio anterior:</span>
                 <s>{{ $product->price->compareFormatted }}</s>
                 <span class="font-extrabold text-red-700 dark:text-red-400">-{{ $product->price->discountPercent }}%</span>
@@ -633,14 +656,14 @@ if (!data.success) {
     {{-- DISPONIBILIDAD --}}
     {{-- ================================================================ --}}
 
-    <div class="mt-6 rounded-xl bg-[#f5f5f3] p-4">
+    <div class="mt-5 rounded-xl bg-[#f5f5f3] p-4 sm:mt-6" role="status">
 
         @if($available && $stock > 0)
 
         <div class="flex items-center gap-3">
 
             <span class="relative flex h-3 w-3">
-                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="absolute inline-flex h-full w-full motion-safe:animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                 <span class="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
             </span>
 
@@ -706,7 +729,7 @@ if (!data.success) {
     {{-- SEPARADOR --}}
     {{-- ================================================================ --}}
 
-    <div class="my-6 border-t border-neutral-100"></div>
+    <div class="my-5 border-t border-neutral-100 sm:my-6"></div>
 
 
     {{-- ================================================================ --}}
@@ -716,7 +739,7 @@ if (!data.success) {
     <div>
 
         <label
-            class="mb-2.5 block text-xs font-bold text-neutral-800">
+            for="product-qty" class="mb-2.5 block text-sm font-bold text-neutral-800">
             Cantidad
         </label>
 
@@ -735,6 +758,7 @@ if (!data.success) {
 
 
             <input
+                id="product-qty"
                 x-model.number="qty"
                 @input="validateQuantity()"
                 @change="validateQuantity()"
@@ -745,7 +769,8 @@ if (!data.success) {
         loading ||
         {{ $canPurchase ? 'false' : 'true' }}
     "
-                class="w-full border-0 bg-transparent text-center text-sm font-semibold text-neutral-900 focus:ring-0"
+                inputmode="numeric"
+                class="w-full min-w-0 border-0 bg-transparent text-center text-base font-semibold text-neutral-900 [appearance:textfield] focus:ring-0 sm:text-sm [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 aria-label="Cantidad">
 
 
@@ -770,7 +795,7 @@ if (!data.success) {
     <template x-if="error">
 
         <div
-            class="mt-5 flex items-start gap-3 rounded-2xl border border-error/20 bg-error-container px-4 py-4 text-sm text-on-error-container">
+            role="alert" class="mt-5 flex items-start gap-3 rounded-2xl border border-error/20 bg-error-container px-4 py-4 text-sm text-on-error-container">
 
             <span class="material-symbols-outlined">
                 error
@@ -787,7 +812,9 @@ if (!data.success) {
     {{-- BOTONES --}}
     {{-- ================================================================ --}}
 
-    <div class="mt-6 space-y-3">
+    <div x-ref="actions" class="mt-6 space-y-3">
+
+        <p class="sr-only" aria-live="polite" x-text="added ? 'Producto agregado al carrito' : ''"></p>
 
 
         {{-- AGREGAR AL CARRITO --}}
@@ -799,7 +826,7 @@ if (!data.success) {
         loading ||
         {{ $canPurchase ? 'false' : 'true' }}
     "
-            class="flex w-full items-center justify-center gap-2 rounded-full bg-[#f5a623] px-6 py-3.5 text-sm font-extrabold text-neutral-950 shadow-sm transition hover:bg-amber-400 active:scale-[.99] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:shadow-none">
+            class="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f5a623] px-6 py-3.5 text-sm font-extrabold text-neutral-950 shadow-sm transition hover:bg-amber-400 active:scale-[.99] disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-500 disabled:shadow-none">
             <template x-if="loading">
                 <svg
                     class="h-5 w-5 animate-spin"
@@ -852,7 +879,7 @@ if (!data.success) {
         loading ||
         {{ $canPurchase ? 'false' : 'true' }}
     "
-            class="flex w-full items-center justify-center gap-2 rounded-full border border-neutral-300 px-6 py-3 text-sm font-bold text-neutral-900 transition hover:border-neutral-950 hover:bg-neutral-950 hover:text-white disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400">
+            class="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-neutral-300 px-6 py-3 text-sm font-bold text-neutral-900 transition active:bg-neutral-100 [@media(hover:hover)]:hover:border-neutral-950 [@media(hover:hover)]:hover:bg-neutral-950 [@media(hover:hover)]:hover:text-white disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400">
             <span class="material-symbols-outlined">
                 bolt
             </span>
@@ -901,17 +928,17 @@ if (!data.success) {
 
             <div class="flex items-start gap-3">
 
-                <span class="material-symbols-outlined text-lg text-[#f5a623]">
+                <span class="material-symbols-outlined text-lg text-[#f5a623]" aria-hidden="true">
                     check_circle
                 </span>
 
                 <div>
 
-                    <p class="text-xs font-bold text-white">
+                    <p class="text-sm font-bold text-white">
                         {{ $reason['title'] }}
                     </p>
 
-                    <p class="mt-0.5 text-[11px] leading-5 text-neutral-300">
+                    <p class="mt-0.5 text-xs leading-5 text-neutral-300">
                         {{ $reason['text'] }}
                     </p>
 
@@ -924,5 +951,46 @@ if (!data.success) {
         </div>
 
     </div>
+
+
+    {{-- ================================================================ --}}
+    {{-- BARRA DE COMPRA FIJA (MÓVIL) --}}
+    {{-- ================================================================ --}}
+
+    @if ($canPurchase)
+    <div
+        x-show="showBar"
+        x-transition:enter="transition duration-200 ease-out"
+        x-transition:enter-start="translate-y-full"
+        x-transition:enter-end="translate-y-0"
+        x-transition:leave="transition duration-150 ease-in"
+        x-transition:leave-start="translate-y-0"
+        x-transition:leave-end="translate-y-full"
+        class="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 px-4 pt-3 dark:bg-[#17191b]/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,.08)] backdrop-blur lg:hidden"
+        style="display:none">
+
+        <div class="mx-auto flex max-w-xl items-center gap-3">
+
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-xs text-neutral-500">{{ $product->name }}</p>
+                <p class="font-heading text-lg font-extrabold leading-tight text-neutral-950 tabular-nums">
+                    {{ $product->price->formatted }}
+                </p>
+            </div>
+
+            <button
+                type="button"
+                @click="addToCart()"
+                :disabled="loading"
+                class="flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#f5a623] px-5 py-3 text-sm font-extrabold text-neutral-950 shadow-sm transition active:scale-[.98] disabled:opacity-60">
+                <span class="material-symbols-outlined text-xl" aria-hidden="true"
+                    x-text="added ? 'check_circle' : 'shopping_cart'">shopping_cart</span>
+                <span x-text="loading ? 'Agregando...' : added ? 'Agregado' : 'Agregar'">Agregar</span>
+            </button>
+
+        </div>
+
+    </div>
+    @endif
 
 </div>

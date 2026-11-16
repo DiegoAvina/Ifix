@@ -62,6 +62,8 @@ class LunarProductAttributesTest extends TestCase
         $product = Product::query()->whereHas('variants', fn ($q) => $q->where('sku', 'IFX-TEST-MICRO'))->firstOrFail();
 
         $this->assertSame('draft', $product->status);
+        // Nace en "En Stock": no se vende más de lo que hay en existencias.
+        $this->assertSame('in_stock', $product->variants->first()->purchasable);
         $this->assertSame('Toalla de microfibra 40x40', LunarAttribute::text($product->attribute_data, 'name'));
     }
 

@@ -6,6 +6,8 @@
 
 @php
 
+$navLinksCustom = isset($navLinks);
+
 $navLinks = $navLinks ?? [
 
 [
@@ -27,6 +29,15 @@ $navLinks = $navLinks ?? [
 ],
 
 ];
+
+// "Nosotros" solo aparece si la página está publicada en el panel.
+if (! $navLinksCustom &&\App\Models\AboutPage::current()->published) {
+    array_splice($navLinks, 2, 0, [[
+        'label' => 'Nosotros',
+        'url' => route('about'),
+        'active' => request()->routeIs('about'),
+    ]]);
+}
 
 @endphp
 

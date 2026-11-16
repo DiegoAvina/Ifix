@@ -2,7 +2,7 @@
 
 <div>
 
-    <div class="mb-10">
+    <div class="mb-5 sm:mb-10">
 
         <span class="mb-2 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#a76500]">
             También te puede interesar

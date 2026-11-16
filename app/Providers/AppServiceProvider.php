@@ -46,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
             ])
             ->pages([
                 \App\Filament\Pages\ShippingSettingsPage::class,
+                \App\Filament\Pages\AboutPageSettings::class,
             ])
             // Marca IFIX en lugar de la de Lunar (licencia MIT: se permite).
             ->brandName('IFIX')
@@ -120,6 +121,15 @@ class AppServiceProvider extends ServiceProvider
             'shippingEstimate',
             rescue(fn () => app(\App\Services\Shipping\ShippingViewService::class)->estimateFor(cartTotal: 0), null, false),
         ));
+
+        // Lunar crea las variantes con comprabilidad "Siempre" (vender aunque no
+        // haya existencias). En IFIX no se vende más de lo que hay: un producto
+        // nuevo nace en "En Stock". Elegir "Siempre" en el panel sigue siendo posible.
+        ProductVariant::creating(function (ProductVariant $variant): void {
+            if (! array_key_exists('purchasable', $variant->getAttributes())) {
+                $variant->purchasable = 'in_stock';
+            }
+        });
 
         // El índice de búsqueda aproximada se reconstruye al editar productos.
         foreach ([Product::class, ProductVariant::class] as $model) {

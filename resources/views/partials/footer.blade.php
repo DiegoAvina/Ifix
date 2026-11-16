@@ -6,12 +6,13 @@
 --}}
 
 @php
-    $footerLinks = $footerLinks ?? [
+    $footerLinks = $footerLinks ?? array_filter([
+        \App\Models\AboutPage::current()->published ? ['label' => 'Nosotros', 'url' => route('about')] : null,
         ['label' => 'Aviso de privacidad', 'url' => route('legal.privacy')],
         ['label' => 'Términos de servicio',   'url' => route('legal.terms')],
         ['label' => 'Sostenibilidad',          'url' => '#'],
         ['label' => 'Carreras',                'url' => '#'],
-    ];
+    ]);
 
     $year = date('Y');
 @endphp

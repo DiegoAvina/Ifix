@@ -31,7 +31,7 @@
                     'description' => $productSummary,
                     'sku' => $product->inventory->sku,
                     'image' => collect($product->gallery)->pluck('url')->filter()->values()->all(),
-                    'brand' => $product->brand->name ? ['@type' => 'Brand', 'name' => $product->brand->name] : null,
+                    'brand' => ['@type' => 'Brand', 'name' => $product->brand->name ?: config('seo.name')],
                     'category' => $category ? 'Detallado automotriz > '.$category['name'] : 'Detallado automotriz',
                     'url' => $product->url,
                     'offers' => [
@@ -43,7 +43,15 @@
                             ? 'https://schema.org/InStock'
                             : 'https://schema.org/OutOfStock',
                         'itemCondition' => 'https://schema.org/NewCondition',
-                        'seller' => ['@type' => 'Organization', 'name' => 'IFIX'],
+                        'seller' => ['@id' => url('/').'#organization'],
+                        // Igual a lo que promete products.partials.shipping ("Devoluciones fáciles durante 30 días").
+                        'hasMerchantReturnPolicy' => [
+                            '@type' => 'MerchantReturnPolicy',
+                            'applicableCountry' => 'MX',
+                            'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                            'merchantReturnDays' => 30,
+                            'returnMethod' => 'https://schema.org/ReturnByMail',
+                        ],
                     ],
                 ]),
                 [
@@ -63,9 +71,13 @@
 @endpush
 
 @section('content')
-    <div class="min-h-screen bg-[#f5f5f3]">
+    {{-- pb extra en móvil: deja sitio a la barra de compra fija de products.partials.info --}}
+    <div @class([
+        'min-h-screen bg-[#f5f5f3]',
+        'pb-24 lg:pb-0' => $product->variantId && $product->inventory->available,
+    ])>
         <section class="border-b border-neutral-800 bg-[#151617] text-neutral-300">
-            <div class="mx-auto flex max-w-[1340px] flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-2.5 text-[10px] font-semibold sm:px-6 sm:text-xs lg:justify-between lg:px-8">
+            <div class="mx-auto flex max-w-[1340px] flex-wrap items-center justify-center gap-x-6 gap-y-2 px-4 py-2 text-[11px] font-semibold sm:px-6 sm:text-xs lg:justify-between lg:px-8">
                 <span class="inline-flex items-center gap-2">
                     <span class="material-symbols-outlined text-base text-[#f5a623]" aria-hidden="true">local_shipping</span>
                     Envíos a todo México
@@ -81,8 +93,19 @@
             </div>
         </section>
 
-        <div class="mx-auto max-w-[1340px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-            <nav class="mb-5 flex flex-wrap items-center gap-2 text-xs text-neutral-500" aria-label="Ruta de navegación">
+        <div class="mx-auto max-w-[1340px] px-4 pb-6 pt-2 sm:px-6 sm:py-8 lg:px-8">
+            {{-- Móvil: un solo enlace "volver" con área táctil de 44px; la ruta completa ocupa espacio y sus enlaces son muy pequeños para el dedo. --}}
+            @php
+                $back = $category
+                    ? ['url' => $category['url'], 'label' => $category['name']]
+                    : ['url' => route('catalog.index'), 'label' => 'Productos'];
+            @endphp
+            <a href="{{ $back['url'] }}" class="-ml-2 mb-1 inline-flex min-h-11 max-w-full items-center gap-1 rounded-lg px-2 text-sm font-semibold text-neutral-600 active:bg-neutral-200/60 sm:hidden">
+                <span class="material-symbols-outlined text-xl" aria-hidden="true">arrow_back</span>
+                <span class="truncate">{{ $back['label'] }}</span>
+            </a>
+
+            <nav class="mb-5 hidden flex-wrap items-center gap-2 text-xs text-neutral-500 sm:flex" aria-label="Ruta de navegación">
                 <a href="{{ route('home') }}" class="inline-flex items-center gap-1 transition hover:text-[#bd7710]">
                     <span class="material-symbols-outlined text-base" aria-hidden="true">home</span>
                     Inicio
@@ -107,7 +130,7 @@
                 @include('products.partials.info')
             </div>
 
-            <div class="mt-8 grid gap-5 lg:mt-10">
+            <div class="mt-5 grid gap-4 sm:mt-8 sm:gap-5 lg:mt-10">
                 @include('products.partials.description')
 
                 @if (count($product->specifications))

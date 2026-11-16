@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Lunar\Models\Product;
 
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LegalPageController;
 use App\Http\Controllers\CatalogController;
@@ -56,6 +57,10 @@ Route::get('/terminos-de-servicio', [LegalPageController::class, 'terms'])
 Route::get('/legal/{slug}', [LegalPageController::class, 'show'])
     ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
     ->name('legal.show');
+
+// Misión, visión y valores; se edita en el panel de Lunar (Nosotros).
+Route::get('/nosotros', AboutController::class)
+    ->name('about');
 
 Route::get('/dashboard', function () {
     return redirect()->route('profile.edit');
