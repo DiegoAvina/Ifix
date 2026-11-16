@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import polishReveal from './polish-reveal';
 
 window.Alpine = Alpine;
 
@@ -1087,5 +1088,7 @@ document.addEventListener('click', (event) => {
 // ============================================================
 // ALPINE
 // ============================================================
+
+Alpine.data('polishReveal', polishReveal);
 
 Alpine.start();

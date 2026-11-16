@@ -21,7 +21,9 @@ class AboutPageTest extends TestCase
             ->assertSee('Misión')
             ->assertSee('Visión')
             ->assertSee('Nuestros valores')
-            ->assertSee('Honestidad');
+            ->assertSee('Honestidad')
+            ->assertSee('Del lavado al acabado espejo')
+            ->assertSee('Descontaminar');
 
         $this->seed(\Database\Seeders\DatabaseSeeder::class);
         $this->get('/terminos-de-servicio')->assertOk()->assertSee('href="'.route('about').'"', false);

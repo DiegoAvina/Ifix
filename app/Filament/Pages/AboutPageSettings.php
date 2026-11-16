@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\AboutPage;
+use App\Services\Storefront\CategoryService;
 use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -127,6 +128,40 @@ class AboutPageSettings extends Page implements HasForms
                             ->defaultItems(0),
                     ]),
 
+                Forms\Components\Section::make('Proceso de detallado')
+                    ->description('Los pasos del lavado al acabado espejo. Cada paso puede enlazar a una categoría de la tienda (muestra su número de productos). Si no hay pasos, la sección no aparece.')
+                    ->collapsible()
+                    ->schema([
+                        Forms\Components\Repeater::make('process')
+                            ->hiddenLabel()
+                            ->schema([
+                                Forms\Components\TextInput::make('title')
+                                    ->label('Paso')
+                                    ->placeholder('Lavar')
+                                    ->required()
+                                    ->maxLength(30),
+                                Forms\Components\Select::make('category')
+                                    ->label('Categoría que enlaza')
+                                    ->placeholder('Sin enlace')
+                                    ->options(fn (): array => collect(app(CategoryService::class)->all())
+                                        ->filter(fn (array $category) => $category['slug'])
+                                        ->mapWithKeys(fn (array $category) => [$category['slug'] => $category['name']])
+                                        ->all()),
+                                Forms\Components\Textarea::make('text')
+                                    ->label('Descripción')
+                                    ->rows(2)
+                                    ->maxLength(160)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(2)
+                            ->reorderableWithButtons()
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => $state['title'] ?? null)
+                            ->addActionLabel('Agregar paso')
+                            ->maxItems(6)
+                            ->defaultItems(0),
+                    ]),
+
                 Forms\Components\Section::make('Cifras')
                     ->description('Opcional. Ej.: "+2,000" clientes, "48 h" de envío. Si no hay cifras, la sección no aparece.')
                     ->collapsible()
@@ -208,7 +243,7 @@ class AboutPageSettings extends Page implements HasForms
         $data = $this->form->getState();
 
         // Los repeaters guardan con claves aleatorias: se guardan como lista.
-        foreach (['values', 'stats', 'milestones'] as $list) {
+        foreach (['values', 'process', 'stats', 'milestones'] as $list) {
             $data[$list] = array_values($data[$list] ?? []);
         }
 

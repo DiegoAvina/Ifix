@@ -47,6 +47,7 @@ class AboutPage extends Model
         'mission',
         'vision',
         'values',
+        'process',
         'stats',
         'milestones',
         'closing_title',
@@ -56,6 +57,7 @@ class AboutPage extends Model
 
     protected $casts = [
         'values' => 'array',
+        'process' => 'array',
         'stats' => 'array',
         'milestones' => 'array',
         'published' => 'boolean',
@@ -106,6 +108,13 @@ class AboutPage extends Model
                 ['icon' => 'support_agent', 'title' => 'Servicio', 'description' => 'Te acompañamos antes, durante y después de tu compra.'],
                 ['icon' => 'auto_awesome', 'title' => 'Pasión', 'description' => 'Amamos los autos y el detalle bien hecho.'],
             ],
+            'process' => [
+                ['title' => 'Lavar', 'text' => 'Shampoo de alta espuma que levanta la suciedad sin rayar la pintura.', 'category' => 'limpieza'],
+                ['title' => 'Descontaminar', 'text' => 'Clay bar y limpiador ácido para retirar sarro y contaminación incrustada.', 'category' => 'limpieza'],
+                ['title' => 'Corregir', 'text' => 'Pulimentos de corte alto y medio que borran rayones y swirls.', 'category' => 'pulimentos'],
+                ['title' => 'Proteger', 'text' => 'Recubrimiento cerámico 9H, ceras de grafeno y selladores hidrofóbicos.', 'category' => 'proteccion-ceramica'],
+                ['title' => 'Restaurar', 'text' => 'Plásticos negros otra vez negros y llantas con brillo profundo.', 'category' => 'restauradores'],
+            ],
             'stats' => [],
             'milestones' => [],
             'closing_title' => '¿Listo para que tu auto brille?',
@@ -127,6 +136,27 @@ class AboutPage extends Model
                 'icon' => array_key_exists($item['icon'] ?? '', self::ICONS) ? $item['icon'] : 'verified',
                 'title' => (string) $item['title'],
                 'description' => (string) ($item['description'] ?? ''),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Pasos del proceso; cada uno con la categoría de la tienda a la que
+     * enlaza (si sigue visible), con su ícono y número de productos.
+     *
+     * @param  array<int, array{slug: ?string, name: string, icon: string, count: int, url: string}>  $categories
+     */
+    public function processItems(array $categories): array
+    {
+        $bySlug = collect($categories)->keyBy('slug');
+
+        return collect($this->process ?? [])
+            ->filter(fn ($item) => filled($item['title'] ?? null))
+            ->map(fn ($item) => [
+                'title' => (string) $item['title'],
+                'text' => (string) ($item['text'] ?? ''),
+                'category' => $bySlug->get($item['category'] ?? null),
             ])
             ->values()
             ->all();
