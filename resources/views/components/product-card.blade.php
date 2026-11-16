@@ -13,8 +13,14 @@
 @endphp
 
 <article class="group relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:-translate-y-1 hover:border-neutral-300 hover:shadow-xl hover:shadow-neutral-900/10">
-    {{-- En el celular la foto ocupa toda la tarjeta; desde sm, con aire alrededor. --}}
-    <a href="{{ $detailUrl }}" class="relative flex aspect-square items-center justify-center overflow-hidden bg-[#f4f4f2] sm:p-7">
+    {{-- La foto llena todo el recuadro (recorta lo que sobre, centrada). --}}
+    <a href="{{ $detailUrl }}" class="relative block aspect-square overflow-hidden bg-[#f4f4f2]">
+        {{-- Descuento: solo si el producto tiene precio anterior. --}}
+        @if ($product->price->compareFormatted && $product->price->discountPercent)
+            <span class="absolute right-3 top-3 z-10 rounded-full bg-red-600 px-2.5 py-1 text-[10px] font-extrabold tabular-nums text-white shadow-md sm:right-4 sm:top-4 sm:px-3 sm:text-xs">
+                -{{ $product->price->discountPercent }}%
+            </span>
+        @endif
         @foreach ($product->badges as $badge)
             @if ($badge->label !== 'Disponible')
                 <span class="absolute left-3 top-3 z-10 rounded-full bg-[#f5a623] px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wide text-neutral-950 sm:left-4 sm:top-4 sm:px-3 sm:text-[10px]">
@@ -24,7 +30,7 @@
             @endif
         @endforeach
         <img src="{{ $image }}" alt="{{ $imageAlt }}" loading="lazy" data-product-image
-            class="h-full w-full object-cover transition duration-500 group-hover:scale-105 sm:object-contain">
+            class="absolute inset-0 h-full w-full object-cover object-center transition duration-500 group-hover:scale-105">
     </a>
 
     <div class="flex flex-1 flex-col p-3 sm:p-4">
@@ -51,7 +57,6 @@
                     <span class="sr-only">Precio anterior:</span>
                     <s>{{ $product->price->compareFormatted }}</s>
                 </p>
-                <p class="text-xs font-extrabold text-red-700 dark:text-red-400">-{{ $product->price->discountPercent }}%</p>
             @endif
         </div>
 

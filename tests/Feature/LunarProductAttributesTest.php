@@ -35,16 +35,53 @@ class LunarProductAttributesTest extends TestCase
 
     public function test_name_and_description_attributes_exist_and_are_mapped_to_the_product_type(): void
     {
-        foreach (['product', 'collection'] as $type) {
-            $this->assertEqualsCanonicalizing(
-                ['name', 'description'],
-                Attribute::query()->where('attribute_type', $type)->pluck('handle')->all(),
-            );
-        }
+        // Producto: nombre, descripción y la "Ficha técnica" de la página de producto.
+        $productHandles = ['name', 'description', 'contenido', 'rendimiento', 'superficie', 'aplicacion', 'modo_de_uso'];
+
+        $this->assertEqualsCanonicalizing(
+            $productHandles,
+            Attribute::query()->where('attribute_type', 'product')->pluck('handle')->all(),
+        );
 
         $this->assertEqualsCanonicalizing(
             ['name', 'description'],
+            Attribute::query()->where('attribute_type', 'collection')->pluck('handle')->all(),
+        );
+
+        $this->assertEqualsCanonicalizing(
+            $productHandles,
             ProductType::query()->firstOrFail()->mappedAttributes->pluck('handle')->all(),
+        );
+    }
+
+    public function test_staff_can_fill_the_technical_sheet_of_a_product(): void
+    {
+        Livewire::test(ListProducts::class)->callAction('create', [
+            'name' => ['es' => 'Pulimento de prueba 500 ml'],
+            'product_type_id' => ProductType::query()->value('id'),
+            'sku' => 'IFX-TEST-SHEET',
+            'base_price' => 200,
+        ]);
+
+        $product = Product::query()->whereHas('variants', fn ($q) => $q->where('sku', 'IFX-TEST-SHEET'))->firstOrFail();
+
+        $this->get('/lunar/products/'.$product->getRouteKey().'/edit')
+            ->assertOk()
+            ->assertSee('Ficha técnica')
+            ->assertSee('Rendimiento')
+            ->assertSee('Modo de uso');
+
+        Livewire::test(EditProduct::class, ['record' => $product->getRouteKey()])
+            ->set('data.attribute_data.rendimiento', 'Rinde 10 autos')
+            ->set('data.attribute_data.modo_de_uso', ['1' => 'Lava el auto.', 'Pulir' => 'Aplica a baja velocidad.'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $product->refresh();
+        $this->assertSame('Rinde 10 autos', LunarAttribute::plain($product->attribute_data, 'rendimiento'));
+        $this->assertSame(
+            ['Lava el auto.', 'Pulir: Aplica a baja velocidad.'],
+            LunarAttribute::plain($product->attribute_data, 'modo_de_uso'),
         );
     }
 

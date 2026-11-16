@@ -133,6 +133,14 @@
             <div class="mt-5 grid gap-4 sm:mt-8 sm:gap-5 lg:mt-10">
                 @include('products.partials.description')
 
+                @if (count($product->howTo))
+                    @include('products.partials.how-to')
+                @endif
+
+                @if ($process ?? null)
+                    @include('products.partials.process')
+                @endif
+
                 @if (count($product->specifications))
                     @include('products.partials.specifications')
                 @endif

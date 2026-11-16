@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AboutPage;
 use App\Services\Storefront\CategoryService;
 use App\Services\Storefront\ProductService;
 use App\Services\Storefront\StorefrontAvailabilityQuery;
@@ -38,7 +39,8 @@ class ProductController extends Controller
         ]);
 
         // Primera categoría visible del producto, para la ruta de navegación.
-        $visibleCategories = collect($categories->all())->keyBy('id');
+        $categoryList = $categories->all();
+        $visibleCategories = collect($categoryList)->keyBy('id');
         $category = $product->collections
             ->sortBy('id')
             ->map(fn ($collection) => $visibleCategories->get($collection->id))
@@ -51,6 +53,8 @@ class ProductController extends Controller
                 $products->related($product)
             ),
             'category' => $category,
+            // Paso del proceso de detallado (se edita en el panel: Nosotros).
+            'process' => AboutPage::current()->processFor($category, $categoryList),
         ]);
     }
 }

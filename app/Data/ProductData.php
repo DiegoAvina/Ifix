@@ -40,5 +40,19 @@ final readonly class ProductData
 
         public string $addToCartUrl,
 
+        /**
+         * Ficha técnica (grupo "Ficha técnica" del panel); solo los datos capturados.
+         *
+         * @var array<int, array{icon: string, label: string, value: string}>
+         */
+        public array $facts = [],
+
+        /**
+         * Modo de uso: pasos en orden.
+         *
+         * @var string[]
+         */
+        public array $howTo = [],
+
     ) {}
 }

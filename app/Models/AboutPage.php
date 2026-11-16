@@ -162,6 +162,37 @@ class AboutPage extends Model
             ->all();
     }
 
+    /**
+     * Ubica una categoría dentro del proceso de detallado (página de producto):
+     * todos los pasos, cuáles corresponden a la categoría y el paso de antes
+     * y de después. Null si la categoría no está en ningún paso.
+     *
+     * @return array{steps: array, previous: ?array, next: ?array}|null
+     */
+    public function processFor(?array $category, array $categories): ?array
+    {
+        if (! $category || ! $category['slug']) {
+            return null;
+        }
+
+        $steps = collect($this->processItems($categories))
+            ->map(fn (array $step) => $step + ['current' => ($step['category']['slug'] ?? null) === $category['slug']]);
+
+        $first = $steps->search(fn (array $step) => $step['current']);
+
+        if ($first === false) {
+            return null;
+        }
+
+        $last = $steps->keys()->filter(fn (int $i) => $steps[$i]['current'])->last();
+
+        return [
+            'steps' => $steps->all(),
+            'previous' => $steps->get($first - 1),
+            'next' => $steps->get($last + 1),
+        ];
+    }
+
     public function statItems(): array
     {
         return collect($this->stats ?? [])

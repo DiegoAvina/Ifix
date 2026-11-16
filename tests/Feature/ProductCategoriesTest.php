@@ -121,9 +121,11 @@ class ProductCategoriesTest extends TestCase
     {
         $this->assignProducts();
 
-        $this->get(route('catalog.index'))
-            ->assertOk()
-            ->assertSee('Limpieza (1)')
-            ->assertDontSee('Productos destacados (');
+        $response = $this->get(route('catalog.index'))->assertOk();
+
+        // Pestañas de categoría: nombre y, a un lado, su número de productos.
+        $tabs = \Illuminate\Support\Str::between($response->getContent(), 'aria-label="Categorías"', '</nav>');
+        $this->assertMatchesRegularExpression('/Limpieza\s*<span[^>]*>1<\/span>/', $tabs);
+        $this->assertStringNotContainsString('Productos destacados', $tabs);
     }
 }

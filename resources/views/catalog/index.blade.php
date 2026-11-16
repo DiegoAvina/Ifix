@@ -89,65 +89,53 @@
             </div>
         </section>
 
-        <section class="bg-white">
-            <div class="mx-auto max-w-[1340px] px-4 pb-5 pt-4 sm:px-6 sm:pb-9 sm:pt-6 lg:px-8">
-                <nav class="mb-3 flex items-center gap-2 text-xs text-neutral-500 sm:mb-5" aria-label="Ruta de navegación">
-                    <a href="{{ route('home') }}" class="inline-flex items-center gap-1 transition hover:text-[#bd7710]">
-                        <span class="material-symbols-outlined text-base" aria-hidden="true">home</span>
-                        Inicio
-                    </a>
-                    <span class="material-symbols-outlined text-sm text-neutral-400" aria-hidden="true">chevron_right</span>
+        {{-- Encabezado discreto: ruta, título, intro corta y categorías como pestañas. --}}
+        <section class="border-b border-neutral-200 bg-white dark:border-white/10">
+            <div class="mx-auto max-w-[1340px] px-4 pt-4 sm:px-6 sm:pt-7 lg:px-8">
+                <nav class="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500" aria-label="Ruta de navegación">
+                    <a href="{{ route('home') }}" class="transition hover:text-[#bd7710] dark:hover:text-[#f5a623]">Inicio</a>
+                    <span class="text-neutral-400 dark:text-neutral-600" aria-hidden="true">/</span>
                     @if ($category)
-                        <a href="{{ route('catalog.index') }}" class="transition hover:text-[#bd7710]">Productos</a>
-                        <span class="material-symbols-outlined text-sm text-neutral-400" aria-hidden="true">chevron_right</span>
-                        <span class="font-semibold text-neutral-900" aria-current="page">{{ $category['name'] }}</span>
+                        <a href="{{ route('catalog.index') }}" class="transition hover:text-[#bd7710] dark:hover:text-[#f5a623]">Productos</a>
+                        <span class="text-neutral-400 dark:text-neutral-600" aria-hidden="true">/</span>
+                        <span class="text-neutral-800 dark:text-neutral-300" aria-current="page">{{ $category['name'] }}</span>
                     @else
-                        <span class="font-semibold text-neutral-900" aria-current="page">Todos los productos</span>
+                        <span class="text-neutral-800 dark:text-neutral-300" aria-current="page">Todos los productos</span>
                     @endif
                 </nav>
 
-                <div class="flex flex-col gap-4 sm:gap-6 lg:flex-row lg:items-end lg:justify-between">
-                    <div class="max-w-2xl">
-                        <span class="hidden items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-[10px] sm:inline-flex font-extrabold uppercase tracking-[0.16em] text-amber-900">
-                            <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-[#f5a623]"></span>
-                            Catálogo profesional IFIX
-                        </span>
-                        <h1 class="font-heading text-2xl font-extrabold leading-tight tracking-tight text-neutral-950 sm:mt-3 sm:text-4xl">
-                            {{ $catalogHeading }}
-                        </h1>
-                        <p class="mt-1.5 line-clamp-2 max-w-2xl text-sm leading-6 text-neutral-600 sm:mt-2 sm:line-clamp-none sm:text-base">
-                            {{ $catalogIntro }}
-                        </p>
-                    </div>
+                <h1 class="mt-2 font-heading text-2xl font-extrabold tracking-tight text-neutral-950 dark:text-white sm:text-3xl">
+                    {{ $catalogHeading }}
+                </h1>
+                <p class="mt-1.5 line-clamp-2 max-w-2xl text-sm leading-6 text-neutral-500 dark:text-neutral-400">
+                    {{ $catalogIntro }}
+                </p>
 
-                    @php
-                        $selectedCollections = array_map('strval', (array) request('collection', []));
-                        $onlyOneCategory = $category || count($selectedCollections) === 1;
-                    @endphp
-                    {{-- Enlaces a las páginas de categoría (no a filtros): así Google las rastrea. --}}
-                    <nav class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" aria-label="Categorías">
-                        <a href="{{ route('catalog.index', $category ? [] : request()->except('collection', 'page')) }}"
-                            @class([
-                                'shrink-0 rounded-full px-4 py-2 text-xs font-bold transition sm:text-sm',
-                                'bg-neutral-950 text-white' => ! $selectedCollections,
-                                'bg-neutral-100 text-neutral-800 hover:bg-neutral-200' => $selectedCollections,
-                            ])>
-                            Todos
+                @php
+                    $selectedCollections = array_map('strval', (array) request('collection', []));
+                    $onlyOneCategory = $category || count($selectedCollections) === 1;
+                    $tab = 'relative shrink-0 border-b-2 py-3 text-sm font-semibold transition';
+                    $tabOn = 'border-[#f5a623] text-neutral-950 dark:text-white';
+                    $tabOff = 'border-transparent text-neutral-500 hover:border-neutral-300 hover:text-neutral-900 dark:text-neutral-400 dark:hover:border-white/20 dark:hover:text-white';
+                @endphp
+                {{-- Enlaces a las páginas de categoría (no a filtros): así Google las rastrea.
+                     En celular se desliza de lado, sin barra de scroll y con borde difuminado. --}}
+                <nav class="-mx-4 mt-4 flex gap-6 overflow-x-auto px-4 [mask-image:linear-gradient(to_right,#000_calc(100%-40px),transparent)] [scrollbar-width:none] sm:mx-0 sm:mt-5 sm:px-0 lg:[mask-image:none] [&::-webkit-scrollbar]:hidden" aria-label="Categorías">
+                    <a href="{{ route('catalog.index', $category ? [] : request()->except('collection', 'page')) }}"
+                        @if (! $selectedCollections) aria-current="page" @endif
+                        class="{{ $tab }} {{ $selectedCollections ? $tabOff : $tabOn }}">
+                        Todos
+                    </a>
+                    @foreach ($categories as $chip)
+                        @php $chipSelected = $onlyOneCategory && in_array((string) $chip['id'], $selectedCollections, true); @endphp
+                        <a href="{{ $chip['url'] }}"
+                            @if ($chipSelected) aria-current="page" @endif
+                            class="{{ $tab }} {{ $chipSelected ? $tabOn : $tabOff }}">
+                            {{ $chip['name'] }}
+                            <span class="ml-1 text-xs font-medium tabular-nums text-neutral-400 dark:text-neutral-500">{{ $chip['count'] }}</span>
                         </a>
-                        @foreach ($categories as $chip)
-                            @php $chipSelected = $onlyOneCategory && in_array((string) $chip['id'], $selectedCollections, true); @endphp
-                            <a href="{{ $chip['url'] }}"
-                                @if ($chipSelected) aria-current="page" @endif
-                                @class([
-                                    'shrink-0 rounded-full px-4 py-2 text-xs font-bold transition sm:text-sm',
-                                    'bg-neutral-950 text-white' => $chipSelected,
-                                    'bg-neutral-100 text-neutral-800 hover:bg-neutral-200' => ! $chipSelected,
-                                ])>
-                                {{ $chip['name'] }} ({{ $chip['count'] }})
-                            </a>
-                        @endforeach
-                    </nav>
-                </div>
+                    @endforeach
+                </nav>
             </div>
         </section>
 

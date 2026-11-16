@@ -109,7 +109,38 @@ class ProductService
             // Lo dejamos como estaba
             addToCartUrl: url('/carrito/items'),
 
+            facts: $this->facts($product),
+
+            howTo: (array) (LunarAttribute::plain($product->attribute_data, 'modo_de_uso') ?? []),
+
         );
+    }
+
+    /**
+     * Ficha técnica del producto. El contenido, si no se capturó, se toma del
+     * final del nombre ("… 500 ml", "… 1 L", "… 200 g").
+     *
+     * @return array<int, array{icon: string, label: string, value: string}>
+     */
+    private function facts(Product $product): array
+    {
+        $attributes = $product->attribute_data ?? [];
+
+        $content = LunarAttribute::plain($attributes, 'contenido');
+
+        if (! $content && preg_match('/(\d+(?:[.,]\d+)?\s?(?:ml|l|g|kg|oz|lt))\s*$/iu', (string) LunarAttribute::text($attributes, 'name'), $match)) {
+            $content = $match[1];
+        }
+
+        return collect([
+            ['icon' => 'science', 'label' => 'Contenido', 'value' => $content],
+            ['icon' => 'speed', 'label' => 'Rendimiento', 'value' => LunarAttribute::plain($attributes, 'rendimiento')],
+            ['icon' => 'directions_car', 'label' => 'Superficie', 'value' => LunarAttribute::plain($attributes, 'superficie')],
+            ['icon' => 'back_hand', 'label' => 'Aplicación', 'value' => LunarAttribute::plain($attributes, 'aplicacion')],
+        ])
+            ->filter(fn (array $fact) => is_string($fact['value']) && $fact['value'] !== '')
+            ->values()
+            ->all();
     }
 
     /**

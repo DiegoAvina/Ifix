@@ -653,6 +653,25 @@ if (!data.success) {
 
 
     {{-- ================================================================ --}}
+    {{-- FICHA TÉCNICA (panel: grupo "Ficha técnica" del producto) --}}
+    {{-- ================================================================ --}}
+
+    @if (count($product->facts))
+        <dl class="mt-5 grid grid-cols-2 gap-2 sm:mt-6">
+            @foreach ($product->facts as $fact)
+                <div class="flex items-start gap-2.5 rounded-xl border border-neutral-200 p-3">
+                    <span class="material-symbols-outlined mt-0.5 text-xl text-[#bd7710]" aria-hidden="true">{{ $fact['icon'] }}</span>
+                    <div class="min-w-0">
+                        <dt class="text-[10px] font-extrabold uppercase tracking-[0.14em] text-neutral-500">{{ $fact['label'] }}</dt>
+                        <dd class="mt-0.5 break-words text-sm font-bold leading-snug text-neutral-900">{{ $fact['value'] }}</dd>
+                    </div>
+                </div>
+            @endforeach
+        </dl>
+    @endif
+
+
+    {{-- ================================================================ --}}
     {{-- DISPONIBILIDAD --}}
     {{-- ================================================================ --}}
 
@@ -922,7 +941,6 @@ if (!data.success) {
             @foreach([
                 ['title' => 'Pago 100% seguro', 'text' => 'Todas las transacciones están protegidas.'],
                 ['title' => 'Envíos a todo México', 'text' => 'Entregas mediante paqueterías confiables.'],
-                ['title' => 'Garantía del fabricante', 'text' => 'Todos nuestros productos cuentan con garantía oficial.'],
                 ['title' => 'Atención personalizada', 'text' => 'Nuestro equipo puede ayudarte antes y después de tu compra.'],
             ] as $reason)
 

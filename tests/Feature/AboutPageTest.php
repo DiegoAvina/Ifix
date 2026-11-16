@@ -13,6 +13,14 @@ class AboutPageTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Canal, grupo de clientes y páginas legales: la página lee el catálogo real.
+        $this->seed(\Database\Seeders\DatabaseSeeder::class);
+    }
+
     public function test_page_shows_default_content_before_being_edited(): void
     {
         $this->get('/nosotros')
@@ -25,7 +33,6 @@ class AboutPageTest extends TestCase
             ->assertSee('Del lavado al acabado espejo')
             ->assertSee('Descontaminar');
 
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
         $this->get('/terminos-de-servicio')->assertOk()->assertSee('href="'.route('about').'"', false);
         $this->get('/sitemap.xml')->assertSee(route('about'), false);
     }
@@ -57,7 +64,6 @@ class AboutPageTest extends TestCase
         AboutPage::query()->create(['published' => false] + AboutPage::defaults());
 
         $this->get('/nosotros')->assertNotFound();
-        $this->seed(\Database\Seeders\DatabaseSeeder::class);
         $this->get('/terminos-de-servicio')->assertOk()->assertDontSee('href="'.route('about').'"', false);
         $this->get('/sitemap.xml')->assertDontSee(route('about'), false);
     }
